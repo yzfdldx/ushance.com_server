@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo</title>
+  <!-- <link rel="stylesheet" href="/www/Appdist/index.css" /> -->
+  <link rel="stylesheet" href="http://30.55.248.147:3000/index.css" />
+  <!--<link rel="stylesheet" href="./src/common/bootstrap.css" />-->
+</head>
+<body>
+
+<div id="root"></div>
+
+<!--<script src="./dist/common.js"></script>
+<script src="./dist/index.js"></script>-->
+<div id="plusready"></div>
+<script type="text/javascript" charset="utf-8">
+  var script1 = document.createElement('script');
+  // script1.src = '/www/Appdist/common.js';
+  script1.src = 'http://30.55.248.147:3000/common.js';
+  var script2 = document.createElement('script');
+  // script2.src = '/www/Appdist/index.js';
+  script2.src = 'http://30.55.248.147:3000/index.js';
+  var Dom = document.getElementById('plusready');
+  if (window.navigator.userAgent.indexOf('Mobile') !== -1) {
+    document.addEventListener( "plusready", function(){
+      // 扩展API加载完毕，现在可以正常调用扩展API
+      if (!Dom.innerHTML) {
+        const href = plus.storage.getItem('hbuilder-yzf208644-PhoneHref');
+        if (href) {
+          window.location.href = href;
+          plus.storage.setItem('hbuilder-yzf208644-PhoneHref', '');
+        }
+        Dom.appendChild(script1);
+        Dom.appendChild(script2);
+      }
+    }, false );
+  } else {
+    Dom.appendChild(script1);
+    Dom.appendChild(script2);
+  }
+</script>
+</body>
+</html>
