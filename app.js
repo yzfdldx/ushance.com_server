@@ -51,11 +51,12 @@ app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
-    if (hostType === 'www') {
-      index(req, res, next)
-    } else {
-      next();
-    }
+    index(req, res, next)
+    // if (hostType === 'www') {
+    //   index(req, res, next)
+    // } else {
+    //   next();
+    // }
   } catch (error) {
     var err = new Error('Not Found');
     err.status = 404;
