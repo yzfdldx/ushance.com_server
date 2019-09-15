@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-// 开发环境或者部署
+// 开发环境或者部署 -- 在root -> web-server -> ushance.com_server 里面
 var dev = 'routes';
 var pre = 'dist';
 var this_dev = pre;

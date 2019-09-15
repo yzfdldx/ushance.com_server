@@ -55,6 +55,7 @@ router.get('/test_data.json', function (req, res, next) {
     user: 'root',
     password: ''
   };
+  var query = req.query;
   var pool = mysql.createPool(query.host ? {
     host: query.host.host ? query.host.host : 'localhost',
     port: 3306,
@@ -71,20 +72,19 @@ router.get('/test_data.json', function (req, res, next) {
       });
     } else {
       // 链接成功
-      var _query = req.query;
-      var select = _query.data;
+      var select = query.data;
       connecting.query(select, function (err, result) {
         if (!err && result[0]) {
           res.send({
             result: 'succeed',
             err: JSON.stringify(err),
             data: result[0],
-            query: _query
+            query: query
           });
         } else {
           res.send({
             result: 'error',
-            query: _query,
+            query: query,
             errorCode: '用户名或者密码错误'
           });
         }
@@ -113,8 +113,8 @@ router.get('/load.json', function (req, res, next) {
       });
     } else {
       // 链接成功
-      var _query2 = req.query;
-      var select = 'select ' + '*' + ' from ' + 'users' + ' where ' + ('name = "' + _query2.name + '" and password = "' + _query2.password + '"');
+      var query = req.query;
+      var select = 'select ' + '*' + ' from ' + 'users' + ' where ' + ('name = "' + query.name + '" and password = "' + query.password + '"');
       connecting.query(select, function (err, result) {
         if (!err && result[0]) {
           res.send({
