@@ -78,7 +78,7 @@ router.get('/test_data.json', function (req, res, next) {
           res.send({
             result: 'succeed',
             err: JSON.stringify(err),
-            data: result[0],
+            data: result,
             query: query
           });
         } else {
