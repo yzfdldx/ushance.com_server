@@ -29,10 +29,10 @@ var DFormat = function DFormat(value) {
     var year = oDate.getFullYear();
     var month = oDate.getMonth() + 1;
     var date = oDate.getDate();
-    var Hours = oDate.getHours();
-    var Minutes = oDate.getMinutes();
-    var Seconds = oDate.getSeconds();
-    return year + '-' + ZeorFn(month) + '-' + ZeorFn(date) + ' ' + (ZeorFn(Hours) + ':' + ZeorFn(Minutes) + ':' + ZeorFn(Seconds));
+    // const Hours = oDate.getHours();
+    // const Minutes = oDate.getMinutes();
+    // const Seconds = oDate.getSeconds();
+    return year + '-' + ZeorFn(month) + '-' + ZeorFn(date) + ' ';
   } catch (err) {
     // alert('代码出错请联系：yzflhez@126.com')
     return value;
