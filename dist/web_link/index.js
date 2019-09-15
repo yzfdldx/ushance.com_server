@@ -6,8 +6,38 @@ var express = require('express');
 var router = express.Router();
 // const ajax = require('../../public/js/ajax.js');
 var Data = require('./data');
-// var app = express();
-
+var DFormat = function DFormat(value) {
+  // 日期Filter
+  var Str = value;
+  var ZeorFn = function ZeorFn(a) {
+    var b = void 0;
+    if (a < 10) {
+      b = '0' + a;
+    } else {
+      b = '' + a;
+    }
+    return b;
+  };
+  try {
+    var oDate = void 0;
+    var onoff = false;
+    if (Str) {
+      oDate = new Date(Str);
+    } else {
+      oDate = new Date();
+    }
+    var year = oDate.getFullYear();
+    var month = oDate.getMonth() + 1;
+    var date = oDate.getDate();
+    var Hours = oDate.getHours();
+    var Minutes = oDate.getMinutes();
+    var Seconds = oDate.getSeconds();
+    return year + '-' + ZeorFn(month) + '-' + ZeorFn(date) + ' ' + (ZeorFn(Hours) + ':' + ZeorFn(Minutes) + ':' + ZeorFn(Seconds));
+  } catch (err) {
+    // alert('代码出错请联系：yzflhez@126.com')
+    return value;
+  }
+};
 // 个人信息 ***************************
 // 登录
 router.get('/my/load.json', function (req, res, next) {
@@ -71,10 +101,11 @@ router.get('/my/register.json', function (req, res, next) {
       });
     } else {
       // 链接成功
-      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_PASSWORD = "' + query.password + '" and USE_EMAIL = "' + query.Email + '"');
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_EMAIL = "' + query.Email + '"');
       connecting.query(select, function (err, result) {
+        var time = DFormat();
         if (!err && !result[0]) {
-          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + new Date() + '\')';
+          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + time + '\')';
           connecting.query(select2, function (err, result) {
             if (!err) {
               res.send({
@@ -93,7 +124,7 @@ router.get('/my/register.json', function (req, res, next) {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '用户名、密码或者邮箱已经存在'
+            message: '用户名或者邮箱已经存在'
           });
         }
       });
