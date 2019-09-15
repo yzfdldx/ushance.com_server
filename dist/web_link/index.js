@@ -10,6 +10,89 @@ var Data = require('./data');
 
 // const Sql = require('../../public/js/sql.js');
 
+router.get('/test_net.json', function (req, res, next) {
+  // 测试连接
+  var mysql = require('mysql');
+  var query = req.query;
+  var host = {
+    host: 'localhost',
+    port: 3306,
+    database: 'yzf168', // 数据库
+    user: 'root',
+    password: ''
+  };
+  var pool = mysql.createPool(query.host ? {
+    host: query.host.host ? query.host.host : 'localhost',
+    port: 3306,
+    database: query.host.database ? query.host.database : 'yzf168', // 数据库
+    user: query.host.user ? query.host.user : 'root',
+    password: query.host.password ? query.host.password : ''
+  } : host);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        host: query.host
+      });
+    } else {
+      // 链接成功
+      res.send({
+        result: 'succeed',
+        data: '链接成功'
+      });
+    }
+  });
+});
+
+router.get('/test_data.json', function (req, res, next) {
+  // 测试数据库
+  var mysql = require('mysql');
+  var host = {
+    host: 'localhost',
+    port: 3306,
+    database: 'yzf168', // 数据库
+    user: 'root',
+    password: ''
+  };
+  var pool = mysql.createPool(query.host ? {
+    host: query.host.host ? query.host.host : 'localhost',
+    port: 3306,
+    database: query.host.database ? query.host.database : 'yzf168', // 数据库
+    user: query.host.user ? query.host.user : 'root',
+    password: query.host.password ? query.host.password : ''
+  } : host);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        query: query
+      });
+    } else {
+      // 链接成功
+      var _query = req.query;
+      var select = _query.data;
+      connecting.query(select, function (err, result) {
+        if (!err && result[0]) {
+          res.send({
+            result: 'succeed',
+            err: JSON.stringify(err),
+            data: result[0],
+            query: _query
+          });
+        } else {
+          res.send({
+            result: 'error',
+            query: _query,
+            errorCode: '用户名或者密码错误'
+          });
+        }
+      });
+    }
+  });
+});
+
 /* GET home page. */
 // 用户信息 ****************************
 router.get('/load.json', function (req, res, next) {
@@ -30,8 +113,8 @@ router.get('/load.json', function (req, res, next) {
       });
     } else {
       // 链接成功
-      var query = req.query;
-      var select = 'select ' + '*' + ' from ' + 'users' + ' where ' + ('name = "' + query.name + '" and password = "' + query.password + '"');
+      var _query2 = req.query;
+      var select = 'select ' + '*' + ' from ' + 'users' + ' where ' + ('name = "' + _query2.name + '" and password = "' + _query2.password + '"');
       connecting.query(select, function (err, result) {
         if (!err && result[0]) {
           res.send({
