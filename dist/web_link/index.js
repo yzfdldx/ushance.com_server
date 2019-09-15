@@ -8,8 +8,100 @@ var router = express.Router();
 var Data = require('./data');
 // var app = express();
 
-// const Sql = require('../../public/js/sql.js');
+// 个人信息 ***************************
+// 登录
+router.get('/my/load.json', function (req, res, next) {
+  // 登录
+  var mysql = require('mysql');
+  var query = req.query;
+  var host = {
+    host: '149.129.177.101',
+    port: 3306,
+    database: 'my_web', // 数据库
+    user: 'yzf',
+    password: 'Yzf-1234'
+  };
+  var pool = mysql.createPool(host);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_PASSWORD = "' + query.password + '"');
+      connecting.query(select, function (err, result) {
+        if (!err && result[0]) {
+          res.send({
+            result: 'succeed',
+            data: result
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '用户名或者密码错误'
+          });
+        }
+      });
+    }
+  });
+});
+// 注册
+router.get('/my/register.json', function (req, res, next) {
+  // 注册
+  var mysql = require('mysql');
+  var query = req.query;
+  var host = {
+    host: '149.129.177.101',
+    port: 3306,
+    database: 'my_web', // 数据库
+    user: 'yzf',
+    password: 'Yzf-1234'
+  };
+  var pool = mysql.createPool(host);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_PASSWORD = "' + query.password + '" and USE_EMAIL = "' + query.Email + '"');
+      connecting.query(select, function (err, result) {
+        if (!err && !result[0]) {
+          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + new Data() + '\')';
+          connecting.query(select2, function (err, result) {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '注册失败'
+              });
+            }
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '用户名、密码或者邮箱已经存在'
+          });
+        }
+      });
+    }
+  });
+});
 
+// 测试 *********************************
 router.get('/test_net.json', function (req, res, next) {
   // 测试连接
   var mysql = require('mysql');
