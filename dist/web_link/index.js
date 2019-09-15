@@ -74,7 +74,7 @@ router.get('/my/register.json', function (req, res, next) {
       var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_PASSWORD = "' + query.password + '" and USE_EMAIL = "' + query.Email + '"');
       connecting.query(select, function (err, result) {
         if (!err && !result[0]) {
-          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + new Data() + '\')';
+          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + new Date() + '\')';
           connecting.query(select2, function (err, result) {
             if (!err) {
               res.send({
