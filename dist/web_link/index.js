@@ -29,10 +29,10 @@ var DFormat = function DFormat(value) {
     var year = oDate.getFullYear();
     var month = oDate.getMonth() + 1;
     var date = oDate.getDate();
-    // const Hours = oDate.getHours();
-    // const Minutes = oDate.getMinutes();
-    // const Seconds = oDate.getSeconds();
-    return year + '-' + ZeorFn(month) + '-' + ZeorFn(date) + ' ';
+    var Hours = oDate.getHours();
+    var Minutes = oDate.getMinutes();
+    var Seconds = oDate.getSeconds();
+    return year + '-' + ZeorFn(month) + '-' + ZeorFn(date) + ' ' + (ZeorFn(Hours) + ':' + ZeorFn(Minutes) + ':' + ZeorFn(Seconds));
   } catch (err) {
     // alert('代码出错请联系：yzflhez@126.com')
     return value;
@@ -105,7 +105,7 @@ router.get('/my/register.json', function (req, res, next) {
       connecting.query(select, function (err, result) {
         var time = DFormat();
         if (!err && !result[0]) {
-          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'' + time + '\')';
+          var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER, CREATE_DATE) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'1\', ' + time + ')';
           connecting.query(select2, function (err, result) {
             if (!err) {
               res.send({
