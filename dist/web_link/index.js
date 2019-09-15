@@ -85,7 +85,7 @@ router.get('/test_data.json', function (req, res, next) {
           res.send({
             result: 'error',
             query: query,
-            errorCode: '用户名或者密码错误'
+            errorCode: err
           });
         }
       });
