@@ -4,23 +4,40 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var app = require('./app');
 // var app = require('../dist/app');
 var debug = require('debug')('nodeservice:server');
+var https = require('https');
 var http = require('http');
+var fs = require('fs');
+
+/**
+ * Create HTTP server.
+ */
+var HTTPsever = http.createServer(function (req,res) {
+    res.writeHead(301,{'ushance':'https://www.ushance.com/'});
+    res.end();
+});
+
+HTTPsever.listen(80);
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '80');
+var port = normalizePort(process.env.PORT || '443');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTPS server.
  */
-
-var server = http.createServer(app);
+var privateKey  = fs.readFileSync('./public/ssl/2883636_www.ushance.com.key', 'utf8');
+var certificate = fs.readFileSync('./public/ssl/2883636_www.ushance.com.crt', 'utf8');
+var options = {
+  key: privateKey,
+  cert: certificate,
+}
+var server = https.createServer(options, app);
 
 /**
  * Listen on provided port, on all network interfaces.
