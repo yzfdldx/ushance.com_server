@@ -3,10 +3,8 @@
   "version": "0.0.2",
   "private": true,
   "scripts": {
-    "app": "node ./bin/www",
     "dev": "supervisor ./index.js",
-    "dev2": "supervisor ./index2.js",
-    "test": "node ./index.js",
+    "app": "node ./index.js",
     "clean": "rem -rf dist && mkdir dist",
     "clean2": "del dist?",
     "dist": "npm run clean2 && babel routes --out-dir dist --copy-files",
