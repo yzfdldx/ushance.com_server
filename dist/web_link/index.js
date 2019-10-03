@@ -2,7 +2,7 @@
 
 var express = require('express');
 var router = express.Router();
-// const ajax = require('../../public/js/ajax.js');
+var City = require('./city.js');
 var DFormat = function DFormat(value) {
   // 日期Filter
   var Str = value;
@@ -637,6 +637,26 @@ router.get('/my/getGoodsList.json', function (req, res, next) {
       });
     }
   });
+});
+
+// 城市 *******************************
+router.get('/city.json', function (req, res, next) {
+  // 查询城市
+  if (City && City.City) {
+    res.send({
+      result: 'succeed',
+      data: City.City,
+      errorCode: 200,
+      message: '查询成功'
+    });
+  } else {
+    res.send({
+      data: [],
+      result: 'error',
+      errorCode: err,
+      message: '查询失败'
+    });
+  }
 });
 
 module.exports = router;
