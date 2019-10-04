@@ -1,5 +1,7 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var express = require('express');
 var router = express.Router();
 var City = require('./city.js');
@@ -71,9 +73,14 @@ var host = {
       var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_PASSWORD = "' + query.password + '"');
       connecting.query(select, function (err, result) {
         if (!err && result[0]) {
+          var Item = result[0];
+          var address = Item.address;
+          if (address && typeof address === 'string') {
+            Item.address = JSON.parse(address);
+          }
           res.send({
             result: 'succeed',
-            data: result
+            data: [Item]
           });
         } else {
           res.send({
@@ -138,7 +145,10 @@ router.get('/my/address.json', function (req, res, next) {
   var query = req.query;
   var pool = mysql.createPool(host);
   checkFn('ID', query, res);
-  var address = query.address ? query.address : null;
+  var address = query.address ? query.address : '';
+  if ((typeof address === 'undefined' ? 'undefined' : _typeof(address)) === 'object') {
+    address = JSON.stringify(address);
+  }
   pool.getConnection(function (err, connecting) {
     if (err) {
       res.send({
