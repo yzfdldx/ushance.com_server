@@ -15,8 +15,11 @@ var fs = require('fs');
  * Create HTTP server.
  */
 var HTTPsever = http.createServer(function (req,res) {
-    res.writeHead(301,{'ushance':'https://www.ushance.com/'});
-    res.end();
+  if (res.redirect) {
+    res.redirect('https://www.ushance.com/');
+  }
+  res.writeHead(301,{'Location':'https://www.ushance.com/'});
+  res.end();
 });
 
 HTTPsever.listen(80);
