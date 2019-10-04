@@ -533,6 +533,88 @@ router.get('/my/order/acceptPublishOrder.json', function (req, res, next) {
   });
 });
 
+// 删除单子
+router.get('/my/order/deleteOrder.json', function (req, res, next) {
+  // 删除单子
+  var mysql = require('mysql');
+  var query = req.query;
+  var pool = mysql.createPool(host);
+  checkFn('ID', query, res);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var select = 'DELETE FROM my_web.order WHERE id = ' + query.ID;
+      connecting.query(select, function (err, result) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '删除成功'
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '删除失败'
+          });
+        }
+      });
+    }
+  });
+});
+
+// 编辑单子
+router.get('/my/order/editOrder.json', function (req, res, next) {
+  // 编辑单子
+  var mysql = require('mysql');
+  var query = req.query;
+  var pool = mysql.createPool(host);
+  checkFn('ID', query, res);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var str = '';
+      if (query.message) {
+        str += str ? ', message = \'' + query.message + '\'' : 'message = \'' + query.message + '\'';
+      } else if (query.number) {
+        str += str ? ', number = ' + query.number + ',' : 'number = ' + query.number + ',';
+      } else if (query.USE_ADDRESS) {
+        str += str ? ', USE_ADDRESS = \'' + query.USE_ADDRESS + '\',' : 'USE_ADDRESS = \'' + query.USE_ADDRESS + '\',';
+      }
+      var select = 'update my_web.order set ' + str + (' where id = ' + query.ID);
+      connecting.query(select, function (err, result) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '编辑成功'
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '编辑失败'
+          });
+        }
+      });
+    }
+  });
+});
+
 // 设备 ***********************************
 router.get('/my/getDeviceList.json', function (req, res, next) {
   // 查询设备
@@ -548,7 +630,14 @@ router.get('/my/getDeviceList.json', function (req, res, next) {
       });
     } else {
       // 链接成功
-      var select = 'select ' + '*' + ' from ' + 'my_web.device' + ('' + (query.type ? ' where tab_type = \'' + query.type + '\'' : ''));
+      var select = 'select ' + '*' + ' from ' + 'my_web.device';
+      if (query.type && query.id) {
+        select = 'select ' + '*' + ' from ' + 'my_web.device' + (' where tab_type = \'' + query.type + '\' and id = \'' + query.id + '\'');
+      } else if (query.type) {
+        select = 'select ' + '*' + ' from ' + 'my_web.device' + (' where tab_type = \'' + query.type + '\'');
+      } else if (query.id) {
+        select = 'select ' + '*' + ' from ' + 'my_web.device' + (' where id = \'' + query.id + '\'');
+      }
       connecting.query(select, function (err, result) {
         if (!err) {
           res.send({
@@ -613,6 +702,104 @@ router.get('/my/addDevice.json', function (req, res, next) {
   });
 });
 
+// 删除设备
+router.get('/my/order/deleteDevice.json', function (req, res, next) {
+  var mysql = require('mysql');
+  var query = req.query;
+  var pool = mysql.createPool(host);
+  checkFn('ID', query, res);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var select = 'DELETE FROM my_web.device WHERE id = ' + query.ID;
+      connecting.query(select, function (err, result) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '删除成功'
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '删除失败'
+          });
+        }
+      });
+    }
+  });
+});
+
+// 编辑设备
+router.get('/my/order/editDevice.json', function (req, res, next) {
+  var mysql = require('mysql');
+  var query = req.query;
+  var pool = mysql.createPool(host);
+  checkFn('ID', query, res);
+  pool.getConnection(function (err, connecting) {
+    if (err) {
+      res.send({
+        result: 'error',
+        errorCode: err,
+        message: '数据库连接失败'
+      });
+    } else {
+      // 链接成功
+      var str = '';
+      if (query.name) {
+        str += str ? ', name = \'' + query.name + '\'' : 'name = \'' + query.name + '\'';
+      } else if (query.parameter) {
+        str += str ? ', parameter = \'' + query.parameter + '\'' : 'name = \'' + query.parameter + '\'';
+      } else if (query.detail) {
+        str += str ? ', detail = \'' + query.detail + '\'' : 'detail = \'' + query.detail + '\'';
+      } else if (query.abbreviat) {
+        str += str ? ', abbreviat = \'' + query.abbreviat + '\'' : 'abbreviat = \'' + query.abbreviat + '\'';
+      } else if (query.img) {
+        str += str ? ', img = \'' + query.img + '\'' : 'img = \'' + query.img + '\'';
+      } else if (query.test_parameter) {
+        str += str ? ', test_parameter = \'' + query.test_parameter + '\'' : 'test_parameter = \'' + query.test_parameter + '\'';
+      } else if (query.type) {
+        str += str ? ', type = \'' + query.type + '\'' : 'type = \'' + query.type + '\'';
+      } else if (query.dedail_type) {
+        str += str ? ', dedail_type = \'' + query.dedail_type + '\'' : 'dedail_type = \'' + query.dedail_type + '\'';
+      } else if (query.tab_type) {
+        str += str ? ', tab_type = \'' + query.tab_type + '\'' : 'tab_type = \'' + query.tab_type + '\'';
+      } else if (query.address) {
+        str += str ? ', address = \'' + query.address + '\'' : 'address = \'' + query.address + '\'';
+      } else if (query.price) {
+        str += str ? ', price = ' + query.price : 'price = ' + query.price;
+      } else if (query.message) {
+        str += str ? ', message = \'' + query.message + '\'' : 'message = \'' + query.message + '\'';
+      }
+      var select = 'update my_web.device set ' + str + (' where id = ' + query.ID);
+      connecting.query(select, function (err, result) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '编辑成功'
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '编辑失败'
+          });
+        }
+      });
+    }
+  });
+});
+
 // 商品 ***********************************
 router.get('/my/getGoodsList.json', function (req, res, next) {
   // 查询商品
@@ -629,6 +816,9 @@ router.get('/my/getGoodsList.json', function (req, res, next) {
     } else {
       // 链接成功
       var select = 'select ' + '*' + ' from ' + 'my_web.goods';
+      if (query.id) {
+        select = 'select ' + '*' + ' from ' + 'my_web.goods' + (' where id = \'' + query.id + '\'');
+      }
       connecting.query(select, function (err, result) {
         if (!err) {
           res.send({
