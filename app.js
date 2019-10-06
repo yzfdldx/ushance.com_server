@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 // 开发环境或者部署 -- 在root -> web-server -> ushance.com_server 里面
 var dev = 'routes';
 var pre = 'dist';
-var this_dev = dev;
+var this_dev = pre;
 
 // 页面配置文件
 var index = require('./' + this_dev + '/index'); // pc首页
