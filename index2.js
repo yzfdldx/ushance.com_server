@@ -14,33 +14,15 @@ var fs = require('fs');
 /**
  * Create HTTP server.
  */
-var HTTPsever = http.createServer(function (req,res) {
-  if (res.redirect) {
-    res.redirect('https://www.ushance.com/');
-  }
-  res.writeHead(301,{'Location':'https://www.ushance.com/'});
-  res.end();
-});
-
-HTTPsever.listen(80);
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '443');
+var port = normalizePort(process.env.PORT || '80');
 app.set('port', port);
 
-/**
- * Create HTTPS server.
- */
-var privateKey  = fs.readFileSync('./public/ssl/2883636_www.ushance.com.key', 'utf8');
-var certificate = fs.readFileSync('./public/ssl/2883636_www.ushance.com.crt', 'utf8');
-var options = {
-  key: privateKey,
-  cert: certificate,
-}
-var server = https.createServer(options, app);
+var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
