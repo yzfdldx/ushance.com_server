@@ -45,7 +45,9 @@ var checkFn = function checkFn(e, query, res) {
       errorCode: 200,
       message: e + '\u4E0D\u80FD\u4E3A\u7A7A'
     });
+    return false;
   }
+  return true;
 };
 
 var host = {
@@ -161,66 +163,65 @@ router.get('/my/address.json', function (req, res, next) {
     var mysql = require('mysql');
     var query = req.query;
     var pool = mysql.createPool(host);
-    try {
-      checkFn('ID', query, res);
-    } catch (error) {
-      res.send({
-        result: 'error',
-        errorCode: error,
-        message: '未知错误'
-      });
-    }
-    var address = query.address ? query.address : '';
-    if ((typeof address === 'undefined' ? 'undefined' : _typeof(address)) === 'object') {
-      address = JSON.stringify(address);
-    }
-    pool.getConnection(function (err, connecting) {
-      if (err) {
-        res.send({
-          result: 'error',
-          errorCode: err,
-          message: '数据库连接失败'
-        });
-      } else {
-        // 链接成功
-        var time = DFormat();
-        var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_ID = ' + query.ID);
-        connecting.query(select2, function (err, result) {
-          if (!err) {
-            if (!result || !result.length) {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '修改失败, 没查询到有该用户'
-              });
-            }
-            var select = 'update my_web.USE set ' + ('address = \'' + query.address + '\'') + (' where USE_ID = ' + query.ID);
-            connecting.query(select, function (err, result) {
-              if (!err) {
-                res.send({
-                  result: 'succeed',
-                  data: result,
-                  errorCode: 200,
-                  message: '地址修改成功'
-                });
-              } else {
+    if (checkFn('ID', query, res)) {
+      var address = query.address ? query.address : '';
+      if ((typeof address === 'undefined' ? 'undefined' : _typeof(address)) === 'object') {
+        address = JSON.stringify(address);
+      }
+      pool.getConnection(function (err, connecting) {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败'
+          });
+        } else {
+          // 链接成功
+          var time = DFormat();
+          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_ID = ' + query.ID);
+          connecting.query(select2, function (err, result) {
+            if (!err) {
+              if (!result || !result.length) {
                 res.send({
                   result: 'error',
                   errorCode: err,
-                  message: '地址修改失败'
+                  message: '修改失败, 没查询到有该用户'
                 });
               }
-            });
-          } else {
-            res.send({
-              result: 'error',
-              errorCode: err,
-              message: '查询失败'
-            });
-          }
-        });
-      }
-    });
+              console.log(3232);
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: 'ok'
+              });
+              var select = 'update my_web.USE set ' + ('address = \'' + query.address + '\'') + (' where USE_ID = ' + query.ID);
+              connecting.query(select, function (err, result) {
+                if (!err) {
+                  res.send({
+                    result: 'succeed',
+                    data: result,
+                    errorCode: 200,
+                    message: '地址修改成功'
+                  });
+                } else {
+                  res.send({
+                    result: 'error',
+                    errorCode: err,
+                    message: '地址修改失败'
+                  });
+                }
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '查询失败'
+              });
+            }
+          });
+        }
+      });
+    }
   } catch (error) {
     res.send({
       result: 'error',
