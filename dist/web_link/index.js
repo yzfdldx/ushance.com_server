@@ -39,10 +39,10 @@ var DFormat = function DFormat(value) {
 };
 
 var checkFn = function checkFn(e, query, res) {
-  if (!query || !query[e]) {
+  if (!query || !e || !query[e]) {
     res.send({
       result: 'error',
-      errorCode: 403,
+      errorCode: 200,
       message: e + '\u4E0D\u80FD\u4E3A\u7A7A'
     });
   }
@@ -161,7 +161,15 @@ router.get('/my/address.json', function (req, res, next) {
     var mysql = require('mysql');
     var query = req.query;
     var pool = mysql.createPool(host);
-    checkFn('ID', query, res);
+    try {
+      checkFn('ID', query, res);
+    } catch (error) {
+      res.send({
+        result: 'error',
+        errorCode: error,
+        message: '未知错误'
+      });
+    }
     var address = query.address ? query.address : '';
     if ((typeof address === 'undefined' ? 'undefined' : _typeof(address)) === 'object') {
       address = JSON.stringify(address);
