@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "supervisor ./index.js",
     "app": "node ./index.js",
+    "test": "supervisor ./index2.js",
     "clean": "rem -rf dist && mkdir dist",
     "clean2": "del dist?",
     "dist": "npm run clean2 && babel routes --out-dir dist --copy-files",
