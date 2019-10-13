@@ -431,7 +431,7 @@ router.get('/my/order/addOrder.json', function (req, res, next) {
   try {
     var mysql = require('mysql');
     var query = req.query;
-    if (checkFn(['ID', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'device_id', 'device_name', 'number'], query, res)) {
+    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'device_id', 'device_name', 'number'], query, res)) {
       var pool = mysql.createPool(host);
       pool.getConnection(function (err, connecting) {
         if (err) {
@@ -443,7 +443,7 @@ router.get('/my/order/addOrder.json', function (req, res, next) {
         } else {
           // 链接成功
           var time = DFormat();
-          var select2 = 'select ' + 'USE_ID, USE_NAME, address' + ' from ' + 'my_web.USE' + ' where ' + ('USE_ID = ' + query.GIVE_ID);
+          var select2 = 'select ' + '*' + ' from ' + 'my_web.device' + ' where ' + ('id = ' + query.device_id);
           connecting.query(select2, function (err, result) {
             if (!err) {
               if (!result || !result.length) {
@@ -454,7 +454,7 @@ router.get('/my/order/addOrder.json', function (req, res, next) {
                 });
               }
               var Item = result[0];
-              var select = 'INSERT INTO my_web.order (' + 'USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number' + ') VALUES ( ' + ('\'' + (query.ID ? query.ID : '') + '\', \'' + (Item.USE_NAME ? Item.USE_NAME : '') + '\', ') + ('\'' + (Item.address ? Item.address[0] : '') + '\', \'' + (query.GIVE_ID ? query.GIVE_ID : '') + '\', ') + ('\'' + (query.GIVE_NAME ? query.GIVE_NAME : '') + '\', \'' + (query.GIVE_ADDRESS ? query.GIVE_ADDRESS : '') + '\', ') + ('\'' + time + '\', 0, ') + ('\'' + (query.process ? query.process : '') + '\', \'' + (query.message ? query.message : '') + '\', ') + ('\'' + (query.payment ? query.payment : 0) + '\', \'' + (query.type ? query.type : 0) + '\', ') + ('\'' + (query.device_id ? query.device_id : 0) + '\', \'' + (query.device_name ? query.device_name : '') + '\', ') + ('1, \'' + (query.number ? query.number : 0) + '\')');
+              var select = 'INSERT INTO my_web.order (' + 'USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number' + ') VALUES ( ' + ('\'' + (query.ID ? query.ID : '') + '\', \'' + (query.NAME ? Item.NAME : '') + '\', ') + ('\'' + (query.ADDRESS ? query.ADDRESS : '') + '\', \'' + (Item.USE_ID ? Item.USE_ID : '') + '\', ') + ('\'' + (Item.USE_NAME ? query.USE_NAME : '') + '\', \'' + (Item.address ? Item.address : '') + '\', ') + ('\'' + time + '\', 0, ') + ('\'' + (query.process ? query.process : '') + '\', \'' + (query.message ? query.message : '') + '\', ') + ('\'' + (query.payment ? query.payment : 0) + '\', \'' + (query.type ? query.type : 0) + '\', ') + ('\'' + (query.device_id ? query.device_id : 0) + '\', \'' + (query.device_name ? query.device_name : '') + '\', ') + ('1, \'' + (query.number ? query.number : 0) + '\')');
               connecting.query(select, function (err, result) {
                 if (!err) {
                   res.send({
