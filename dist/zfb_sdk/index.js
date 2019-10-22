@@ -74,15 +74,16 @@ router.get('/web/pay.json', async function(req, res, next) {
         { formData: formData },
       );
       res.send({
-        result: result,
+        data: result,
+        result: 'succeed',
         errorCode: 200,
         message: '',
       });
     }
   } catch (error) {
     res.send({
-      result: null,
-      errorCode: 'err',
+      result: 'error',
+      errorCode: 200,
       message: '代码出错了',
     });
   }

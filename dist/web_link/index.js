@@ -454,7 +454,7 @@ router.get('/my/order/addOrder.json', function (req, res, next) {
                 });
               }
               var Item = result[0];
-              var select = 'INSERT INTO my_web.order (' + 'test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number' + ') VALUES ( ' + ('\'' + (query.test_parameter ? query.test_parameter : {}) + '\', ') + ('\'' + (query.ID ? query.ID : '') + '\', \'' + (query.NAME ? query.NAME : '') + '\', ') + ('\'' + (query.ADDRESS ? query.ADDRESS : '') + '\', \'' + (Item.USE_ID ? Item.USE_ID : '') + '\', ') + ('\'' + (Item.USE_NAME ? Item.USE_NAME : '') + '\', \'' + (Item.address ? Item.address : '') + '\', ') + ('\'' + time + '\', 0, ') + ('\'' + (query.process ? query.process : '') + '\', \'' + (query.message ? query.message : '') + '\', ') + ('\'' + (query.payment ? query.payment : 0) + '\', \'' + (query.type ? query.type : 0) + '\', ') + ('\'' + (query.device_id ? query.device_id : 0) + '\', \'' + (query.device_name ? query.device_name : '') + '\', ') + ('1, \'' + (query.number ? query.number : 0) + '\')');
+              var select = 'INSERT INTO my_web.order (' + 'test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number, payData' + ') VALUES ( ' + ('\'' + (query.test_parameter ? query.test_parameter : {}) + '\', ') + ('\'' + (query.ID ? query.ID : '') + '\', \'' + (query.NAME ? query.NAME : '') + '\', ') + ('\'' + (query.ADDRESS ? query.ADDRESS : '') + '\', \'' + (Item.USE_ID ? Item.USE_ID : '') + '\', ') + ('\'' + (Item.USE_NAME ? Item.USE_NAME : '') + '\', \'' + (Item.address ? Item.address : '') + '\', ') + ('\'' + time + '\', 0, ') + ('\'' + (query.process ? query.process : '') + '\', \'' + (query.message ? query.message : '') + '\', ') + ('\'' + (query.payment ? query.payment : 0) + '\', \'' + (query.type ? query.type : 0) + '\', ') + ('\'' + (query.device_id ? query.device_id : 0) + '\', \'' + (query.device_name ? query.device_name : '') + '\', ') + ('1, \'' + (query.number ? query.number : 0) + '\',') + ('\'' + (query.payData ? query.payData : {}) + '\', ') + ')';
               connecting.query(select, function (err, result) {
                 if (!err) {
                   res.send({
@@ -696,9 +696,11 @@ router.get('/my/order/editOrder.json', function (req, res, next) {
           if (query.message) {
             str += str ? ', message = \'' + query.message + '\'' : 'message = \'' + query.message + '\'';
           } else if (query.number) {
-            str += str ? ', number = ' + query.number + ',' : 'number = ' + query.number + ',';
+            str += str ? ', number = ' + query.number : 'number = ' + query.number;
           } else if (query.USE_ADDRESS) {
-            str += str ? ', USE_ADDRESS = \'' + query.USE_ADDRESS + '\',' : 'USE_ADDRESS = \'' + query.USE_ADDRESS + '\',';
+            str += str ? ', USE_ADDRESS = \'' + query.USE_ADDRESS + '\'' : 'USE_ADDRESS = \'' + query.USE_ADDRESS + '\'';
+          } else if (query.payData) {
+            str += str ? ', payData = \'' + query.payData + '\'' : 'payData = \'' + query.payData + '\'';
           }
           var select = 'update my_web.order set ' + str + (' where id = ' + query.ID);
           connecting.query(select, function (err, result) {
