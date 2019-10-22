@@ -682,7 +682,6 @@ router.get('/my/order/editOrder.json', function (req, res, next) {
     var query = req.query;
     if (checkFn(['ID'], query, res)) {
       var pool = mysql.createPool(host);
-      checkFn('ID', query, res);
       pool.getConnection(function (err, connecting) {
         if (err) {
           res.send({
