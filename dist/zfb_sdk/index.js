@@ -50,8 +50,6 @@ const checkFn = (e, query, res) => {
   return false
 }
 
-var partner = '';
-
 /* GET */
 // 支付连接
 router.get('/web/pay.json', async function(req, res, next) {
@@ -90,12 +88,10 @@ router.get('/web/pay.json', async function(req, res, next) {
 });
 
 router.get('/web/pay2.json', async function(req, res, next) {
-  partner = '';
   try {
     const query = req.query;
     if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
       const formData = new AlipayFormData();
-      partner = query.id,
       formData.setMethod('get');
       formData.addField('notifyUrl', 'https://www.ushance.com/zfb_sdk/web/yanqian.json');
       formData.addField('bizContent', {
@@ -156,7 +152,7 @@ router.get('/web/yanqian2.json', async function(req, res, next) {
     if(mysign) {
       if(params['notify_id']) {
         //生成验证支付宝通知的url
-        var url = 'https://mapi.alipay.com/gateway.do?service=notify_verify&' + 'partner=' + partner + '&notify_id=' + params['notify_id'];
+        var url = 'https://mapi.alipay.com/gateway.do?service=notify_verify&' + 'partner=' + 12 + '&notify_id=' + params['notify_id'];
         console.log('url:' + url)
         //验证是否是支付宝发来的通知
         https.get(url, function(text) {
@@ -249,7 +245,7 @@ router.get('/web/query.json', async function(req, res, next) {
     }
   } catch (error) {
     res.send({
-      result: null,
+      result: 'error',
       errorCode: 'err',
       message: '代码出错了',
     });
@@ -258,6 +254,7 @@ router.get('/web/query.json', async function(req, res, next) {
 
 // 退款
 router.get('/web/refund.json', async function(req, res, next) {
+  const query = req.query;
   if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
     const formData = new AlipayFormData();
     formData.setMethod('get');
@@ -302,6 +299,7 @@ router.get('/web/refund.json', async function(req, res, next) {
 });
 
 router.get('/web/refundQuery.json', async function(req, res, next) {
+  const query = req.query;
   if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
     const formData = new AlipayFormData();
     formData.setMethod('get');
@@ -342,6 +340,64 @@ router.get('/web/refundQuery.json', async function(req, res, next) {
         message: '查询失败',
       });
     }
+  }
+});
+
+function rand(min,max) {
+  return Math.floor(Math.random()*(max-min))+min;
+}
+let messageCode = {};
+// 短信验证
+router.get('/web/message.json', async function(req, res, next) {
+  try {
+    // const query = req.body;
+    const query = req.query;
+    const Core = require('@alicloud/pop-core');
+    if (checkFn(['phone', 'id'], query, res)) {
+      var client = new Core({
+        accessKeyId: 'LTAI4FqgnSGGmsdDeF1m712N',
+        accessKeySecret: 'z12O3EdeHvr5HhycVVaLx0EgsvDWJN',
+        endpoint: 'https://dysmsapi.aliyuncs.com',
+        apiVersion: '2017-05-25',
+      });
+      var params = {
+        "RegionId": "cn-hangzhou",
+        "PhoneNumbers": query.Phone,
+        "SignName": "ushance",
+        "TemplateCode": "SMS_175465012",
+        "TemplateParam": `{code: ${messageCode}}`,
+        "OutId": "流水号"
+      }
+      var requestOption = {
+        method: 'POST'
+      };
+      client.request('SendSms', params, requestOption).then((result) => {
+        if (result && result.Code === 'OK') {
+          messageCode[query.id] = rand(111111, 999999);
+          setTimeout(() => {
+            delete messageCode[query.id];
+          }, 60000)
+        }
+        res.send({
+          data: result,
+          result: result && result.Code === 'OK' ? 'succeed' : 'error',
+          errorCode: 200,
+          message: result.Message,
+        });
+      }, (ex) => {
+        res.send({
+          result: 'error',
+          errorCode: 200,
+          message: ex,
+        });
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了',
+    });
   }
 });
 

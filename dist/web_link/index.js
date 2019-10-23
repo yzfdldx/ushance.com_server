@@ -63,12 +63,81 @@ var host = {
   user: 'yzf',
   password: 'Yzf-1234'
   // 个人信息 ***************************
-  // 登录
-};router.get('/my/load.json', function (req, res, next) {
+};function rand(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+var messageCode = {};
+// 短信验证
+router.post('/my/message.json', function (req, res, next) {
+  try {
+    var query = req.body;
+    // const query = req.query;
+    var Core = require('@alicloud/pop-core');
+    if (checkFn(['phone', 'id'], query, res)) {
+      var client = new Core({
+        accessKeyId: 'LTAI4FqgnSGGmsdDeF1m712N',
+        accessKeySecret: 'z12O3EdeHvr5HhycVVaLx0EgsvDWJN',
+        endpoint: 'https://dysmsapi.aliyuncs.com',
+        apiVersion: '2017-05-25'
+      });
+      // messageCode[query.id] = rand(111111, 999999);
+      // messageCode[query.id] = '1';
+      // setTimeout(() => {
+      //   delete messageCode[query.id];
+      // }, 500000)
+      var params = {
+        "RegionId": "cn-hangzhou",
+        "PhoneNumbers": query.Phone,
+        "SignName": "ushance",
+        "TemplateCode": "SMS_175465012",
+        "TemplateParam": '{code: ' + messageCode + '}',
+        "OutId": "流水号"
+      };
+      var requestOption = {
+        method: 'POST'
+      };
+      // res.send({
+      //   data: query.id,
+      //   result: 'succeed',
+      //   errorCode: 200,
+      //   message: 32,
+      // });
+      client.request('SendSms', params, requestOption).then(function (result) {
+        if (result && result.Code === 'OK') {
+          messageCode[query.id] = rand(111111, 999999);
+          setTimeout(function () {
+            delete messageCode[query.id];
+          }, 500000);
+        }
+        res.send({
+          data: result,
+          result: result && result.Code === 'OK' ? 'succeed' : 'error',
+          errorCode: 200,
+          message: result.Message
+        });
+      }, function (ex) {
+        res.send({
+          result: 'error',
+          errorCode: 200,
+          message: ex
+        });
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了'
+    });
+  }
+});
+// 登录
+router.post('/my/load.json', function (req, res, next) {
   // 登录
   try {
     var mysql = require('mysql');
-    var query = req.query;
+    // const query = req.query;
+    var query = req.body;
     if (checkFn(['name', 'password'], query, res)) {
       var pool = mysql.createPool(host);
       pool.getConnection(function (err, connecting) {
@@ -92,6 +161,7 @@ var host = {
                   // 
                 }
               }
+              delete Item.USE_PASSWORD;
               res.send({
                 result: 'succeed',
                 data: [Item]
@@ -115,57 +185,127 @@ var host = {
     });
   }
 });
-// 注册
-router.get('/my/register.json', function (req, res, next) {
-  // 注册
+router.post('/my/phoneLoad.json', function (req, res, next) {
+  // 登录
   try {
     var mysql = require('mysql');
-    var query = req.query;
-    if (checkFn(['name', 'Email', 'password'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection(function (err, connecting) {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败'
-          });
-        } else {
-          // 链接成功
-          var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" and USE_EMAIL = "' + query.Email + '"');
-          connecting.query(select, function (err, result) {
-            var time = DFormat();
-            if (!err && !result[0]) {
-              var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER, CREATE_DATE) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'1\', \'' + time + '\')';
-              connecting.query(select2, function (err, result) {
-                if (!err) {
-                  res.send({
-                    result: 'succeed',
-                    data: result
-                  });
-                } else {
-                  res.send({
-                    result: 'error',
-                    errorCode: err,
-                    message: '注册失败'
-                  });
+    // const query = req.query;
+    var query = req.body;
+    if (checkFn(['phone', 'check'], query, res)) {
+      if (query.check === '' + messageCode[query.phone]) {
+        var pool = mysql.createPool(host);
+        pool.getConnection(function (err, connecting) {
+          if (err) {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '数据库连接失败'
+            });
+          } else {
+            // 链接成功
+            var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('phone = "' + query.phone + '"');
+            connecting.query(select, function (err, result) {
+              if (!err && result[0]) {
+                var Item = result[0];
+                var address = Item.address;
+                if (address && typeof address === 'string') {
+                  try {
+                    Item.address = JSON.parse(address);
+                  } catch (error) {
+                    // 
+                  }
                 }
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '用户名或者邮箱已经存在'
-              });
-            }
-          });
-        }
-      });
+                delete Item.USE_PASSWORD;
+                res.send({
+                  result: 'succeed',
+                  data: [Item]
+                });
+              } else {
+                res.send({
+                  result: 'error',
+                  errorCode: 200,
+                  message: '该电话用户不存在'
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.send({
+          result: 'error',
+          errorCode: 200,
+          message: '验证码没通过，请重试'
+        });
+      }
     }
   } catch (error) {
     res.send({
       result: 'error',
-      errorCode: error,
+      errorCode: 403,
+      message: '未知错误'
+    });
+  }
+});
+// 注册
+router.post('/my/register.json', function (req, res, next) {
+  // 注册
+  try {
+    var mysql = require('mysql');
+    // const query = req.query;
+    var query = req.body;
+    if (checkFn(['name', 'Email', 'password', 'phone', 'check'], query, res)) {
+      if (query.check === '' + messageCode[query.phone]) {
+        var pool = mysql.createPool(host);
+        pool.getConnection(function (err, connecting) {
+          if (err) {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '数据库连接失败'
+            });
+          } else {
+            // 链接成功
+            var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + ('USE_NAME = "' + query.name + '" or USE_EMAIL = "' + query.Email + '" or phone = "' + query.phone + '"');
+            connecting.query(select, function (err, result) {
+              var time = DFormat();
+              if (!err && !result[0]) {
+                var select2 = 'INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER, CREATE_DATE, phone) VALUES ( \'' + query.name + '\', \'' + query.password + '\', \'' + query.Email + '\', \'' + (query.massage ? query.massage : '') + '\', \'1\', \'' + time + '\', \'' + query.phone + '\')';
+                connecting.query(select2, function (err, result) {
+                  if (!err) {
+                    res.send({
+                      result: 'succeed',
+                      data: result
+                    });
+                  } else {
+                    res.send({
+                      result: 'error',
+                      errorCode: err,
+                      message: '注册失败'
+                    });
+                  }
+                });
+              } else {
+                res.send({
+                  result: 'error',
+                  errorCode: 200,
+                  message: '用户名、邮箱或者电话已经存在'
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.send({
+          result: 'error',
+          errorCode: 200,
+          message: '验证码没通过，请重试'
+        });
+      }
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 403,
       message: '未知错误'
     });
   }

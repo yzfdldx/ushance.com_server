@@ -12,6 +12,7 @@
     "distClear": "npm run clean2 && babel src --out-dir dist --copy-files"
   },
   "dependencies": {
+    "@alicloud/pop-core": "^1.7.7",
     "alipay-sdk": "^3.0.8",
     "alipay-webpay-sdk": "^1.0.0",
     "body-parser": "^1.16.1",
