@@ -64,26 +64,6 @@ function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;
 }
 
-// var client = new Core({
-//   accessKeyId: 'LTAI4FqgnSGGmsdDeF1m712N',
-//   accessKeySecret: 'z12O3EdeHvr5HhycVVaLx0EgsvDWJN',
-//   endpoint: 'https://dysmsapi.aliyuncs.com',
-//   apiVersion: '2017-05-25',
-// });
-// messageCode[query.id] = rand(111111, 999999);
-// messageCode[query.id] = '1';
-// setTimeout(() => {
-//   delete messageCode[query.id];
-// }, 500000)
-// var params = {
-//   "RegionId": "cn-hangzhou",
-//   "PhoneNumbers": "18842897729",
-//   "SignName": "ushance",
-//   "TemplateCode": "SMS_175465012",
-//   "TemplateParam": `{code: 3232}`,
-//   "OutId": "流水号"
-// }
-
 let messageCode = {};
 // 短信验证
 router.post('/my/message.json', async (req, res, next) => {
