@@ -86,37 +86,32 @@ function rand(min,max) {
 
 let messageCode = {};
 // 短信验证
-router.post('/my/message.json', function(req, res, next) {
+router.post('/my/message.json', async (req, res, next) => {
   try {
     const query = req.body;
     // const query = req.query;
-    const Core = require('@alicloud/pop-core');
+    var RPCClient = require('@alicloud/pop-core').RPCClient;
     if (checkFn(['phone', 'id'], query, res)) {
-      var client = new Core({
-        accessKeyId: '<accessKeyId>',
-        accessKeySecret: '<accessSecret>',
+      const accessKeyId = 'LTAI4FnGoeswkBXBjhYHqH1y'
+      const secretAccessKey = 'Skqqu37k3XNOSkTvLfpzjxsRtjze6J'
+      var client = new RPCClient({
+        accessKeyId: accessKeyId,
+        accessKeySecret: secretAccessKey,
         endpoint: 'https://dysmsapi.aliyuncs.com',
-        apiVersion: '2017-05-25',
+        apiVersion: '2017-05-25'
       });
-      // messageCode[query.id] = rand(111111, 999999);
-      // messageCode[query.id] = '1';
-      // setTimeout(() => {
-      //   delete messageCode[query.id];
-      // }, 500000)
+      const Code = rand(111111, 999999);
       var params = {
         "RegionId": "cn-hangzhou",
-        "PhoneNumbers": query.Phone,
+        "PhoneNumbers": `${query.phone}`,
         "SignName": "ushance",
         "TemplateCode": "SMS_175465012",
-        "TemplateParam": `{code: ${messageCode}}`,
+        "TemplateParam": `{code: ${Code}}`,
         "OutId": "流水号"
       }
-      var requestOption = {
-        method: 'POST'
-      };
-      client.request('SendSms', params, requestOption).then((result) => {
+      client.request('SendSms', params).then((result) => {
         if (result && result.Code === 'OK') {
-          messageCode[query.id] = rand(111111, 999999);
+          messageCode[query.id] = Code;
           setTimeout(() => {
             delete messageCode[query.id];
           }, 500000)
@@ -130,10 +125,10 @@ router.post('/my/message.json', function(req, res, next) {
       }, (ex) => {
         res.send({
           result: 'error',
-          errorCode: 200,
+          errorCode: 'err',
           message: ex,
         });
-      })
+      });
     }
   } catch (error) {
     res.send({
