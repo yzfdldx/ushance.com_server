@@ -1,6 +1,4 @@
-"use strict";
-
-var City = [{
+const City = [{
 	"name": "北京市",
 	"code": "110000",
 	"level": "省级",
@@ -19704,6 +19702,6 @@ var City = [{
 	"value": "台湾省",
 	"children": []
 }];
-var Json = {};
+const Json = {};
 Json.City = City;
 module.exports = Json;

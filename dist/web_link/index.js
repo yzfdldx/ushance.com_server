@@ -63,7 +63,6 @@ var host = {
 function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;
 }
-
 let messageCode = {};
 // 短信验证
 router.post('/my/message.json', async (req, res, next) => {
@@ -176,7 +175,7 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
     // const query = req.query;
     const query = req.body;
     if (checkFn(['phone', 'check'], query, res)) {
-      if (query.check === `${messageCode[query.phone]}`) {
+      if (`${query.check}` === `${messageCode[query.phone]}`) {
         var pool = mysql.createPool(host);
         pool.getConnection((err, connecting) => {
           if (err) {
@@ -236,7 +235,7 @@ router.post('/my/register.json', function(req, res, next) { // 注册
     // const query = req.query;
     const query = req.body;
     if (checkFn(['name', 'Email', 'password', 'phone', 'check'], query, res)) {
-      if (query.check === `${messageCode[query.phone]}`) {
+      if (`${query.check}` === `${messageCode[query.phone]}`) {
         var pool = mysql.createPool(host);
         pool.getConnection((err, connecting) => {
           if (err) {
@@ -383,7 +382,7 @@ router.get('/my/order/getNowOrder.json', function(req, res, next) { // 查询现
             message: '数据库连接失败',
           });
         } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}`
+          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}`
           connecting.query(select,(err, result) => {
             if (!err) {
               res.send({
