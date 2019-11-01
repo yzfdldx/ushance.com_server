@@ -368,6 +368,70 @@ router.get('/my/address.json', function(req, res, next) { // 地址
 
 // 我的 *********************************
 // 订单处理 ***********************************
+router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部订单
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    if (checkFn(['id'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              let Arr = [];
+              if (result) {
+                Arr = result.map(e => {
+                  let payPrice = 0;
+                  let payId = ''
+                  try {
+                    const pay = JSON.parse(e.payData);
+                    payPrice = parseFloat(pay.data.total_amount);
+                    // payPrice = parseFloat(pay.price);
+                    payId = pay.id;
+                  } catch (error) {
+                    //
+                  }
+                  return {
+                    ...e,
+                    payData: undefined,
+                    payPrice,
+                    payId,
+                  }
+                });
+              }
+              res.send({
+                result: 'succeed',
+                data: Arr,
+                errorCode: 200,
+                message: '查询成功',
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '查询失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
 router.get('/my/order/getNowOrder.json', function(req, res, next) { // 查询现在进行中的订单
   try {
     const mysql = require('mysql');
@@ -382,12 +446,30 @@ router.get('/my/order/getNowOrder.json', function(req, res, next) { // 查询现
             message: '数据库连接失败',
           });
         } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}`
+          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
           connecting.query(select,(err, result) => {
             if (!err) {
+              let Arr = [];
+              if (result) {
+                Arr = result.map(e => {
+                  let payPrice = 0;
+                  try {
+                    const pay = JSON.parse(e.payData);
+                    payPrice = parseFloat(pay.data.total_amount);
+                    // payPrice = parseFloat(pay.price);
+                  } catch (error) {
+                    //
+                  }
+                  return {
+                    ...e,
+                    payData: undefined,
+                    payPrice
+                  }
+                });
+              }
               res.send({
                 result: 'succeed',
-                data: result,
+                data: Arr,
                 errorCode: 200,
                 message: '查询成功',
               });
@@ -824,12 +906,18 @@ router.get('/my/order/editOrder.json', function(req, res, next) { // 编辑单�
           let str = '';
           if (query.message) {
             str += str ? `, message = '${query.message}'` : `message = '${query.message}'`
-          } else if (query.number) {
+          }
+          if (query.number) {
             str += str ? `, number = ${query.number}` : `number = ${query.number}`
-          } else if (query.USE_ADDRESS) {
+          }
+          if (query.USE_ADDRESS) {
             str += str ? `, USE_ADDRESS = '${query.USE_ADDRESS}'` : `USE_ADDRESS = '${query.USE_ADDRESS}'`
-          } else if (query.payData) {
+          }
+          if (query.payData) {
             str += str ? `, payData = '${query.payData}'` : `payData = '${query.payData}'`
+          }
+          if (query.payment) {
+            str += str ? `, payment = '${query.payment}'` : `payment = '${query.payment}'`
           }
           var select = `update my_web.order set ` +
           str +

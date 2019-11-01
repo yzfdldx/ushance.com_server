@@ -50,6 +50,14 @@ const checkFn = (e, query, res) => {
   return false
 }
 
+var host = {
+  host: '149.129.177.101',
+  port: 3306,
+  database: 'my_web', // 数据库
+  user: 'yzf',
+  password: 'Yzf-1234',
+}
+
 /* GET */
 // 支付连接
 router.get('/web/pay.json', async function(req, res, next) {
@@ -123,17 +131,53 @@ router.get('/web/pay2.json', async function(req, res, next) {
 
 // 验证
 router.post('/web/yanqian.json', async function(req, res, next) {
-  // res.send({
-  //   result: req,
-  //   errorCode: 200,
-  //   message: 'ok',
-  // });
-  // console.log('yanqian.json', req)
-  // const postData = {
-  //   appId: '2019101268311851',
-  //   outTradeNo: '20150320010101001',
-  // }
   const verify = await alipaySdk.checkNotifySign(req.body);
+  console.log('yanqian')
+  console.log(req.body)
+  console.log(verify)
+  console.log('yanqian-ok')
+  // if (verify) {
+  //   const mysql = require('mysql');
+  //   var pool = mysql.createPool(host);
+  //   pool.getConnection((err, connecting) => {
+  //     if (err) {
+  //       res.send({
+  //         data: 'ok',
+  //         result: 'succeed',
+  //         errorCode: 200,
+  //         message: '数据库连接失败',
+  //       });
+  //     } else { // 链接成功
+  //       const ID = query.id.split('_')[1];
+  //       let str = '';
+  //         if ('payData') {
+  //         str += str ? `, payData = '{}'` : `payData = '{}'`;
+  //       } else if ('payment') {
+  //         str += str ? `, payment = '${0}'` : `payment = '${0}'`;
+  //       }
+  //       var select = `update my_web.order set ` +
+  //       str +
+  //       ` where id = ${ID}`;
+  //       connecting.query(select,(err, result) => {
+  //         if (!err) {
+  //           res.send({
+  //             data: 'ok',
+  //             result: 'succeed',
+  //             errorCode: 200,
+  //             message: '',
+  //           });
+  //         } else {
+  //           res.send({
+  //             data: 'ok',
+  //             result: 'succeed',
+  //             errorCode: 200,
+  //             message: '数据更新有问题',
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
   res.send({
     result: verify,
     errorCode: 'err',
@@ -253,8 +297,9 @@ router.get('/web/query.json', async function(req, res, next) {
 });
 
 // 退款
-router.get('/web/refund.json', async function(req, res, next) {
-  const query = req.query;
+router.post('/web/refund.json', async function(req, res, next) {
+  // const query = req.query;
+  const query = req.body;
   if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
     const formData = new AlipayFormData();
     formData.setMethod('get');
@@ -262,7 +307,7 @@ router.get('/web/refund.json', async function(req, res, next) {
     formData.addField('bizContent', {
       outTradeNo: query.id, // 唯一值
       productCode: 'FAST_INSTANT_TRADE_PAY',
-      totalAmount: query.price,
+      refund_amount: query.price,
       subject: query.name,
       body: query.describe,
     });
@@ -274,12 +319,56 @@ router.get('/web/refund.json', async function(req, res, next) {
     if (result) {
       download(result, function( data ) {
         if(data){
-          res.send({
-            data: data,
-            result: 'succeed',
-            errorCode: 200,
-            message: '',
-          });
+          const zfb = JSON.parse(data);
+          if (zfb.alipay_trade_refund_response.msg === 'Success') {
+            const mysql = require('mysql');
+            var pool = mysql.createPool(host);
+            pool.getConnection((err, connecting) => {
+              if (err) {
+                res.send({
+                  data: 'ok',
+                  result: 'succeed',
+                  errorCode: 200,
+                  message: '数据库连接失败',
+                });
+              } else { // 链接成功
+                const ID = query.id.split('_')[1];
+                let str = '';
+                 if ('payData') {
+                  str += str ? `, payData = '{}'` : `payData = '{}'`;
+                } else if ('payment') {
+                  str += str ? `, payment = '${0}'` : `payment = '${0}'`;
+                }
+                var select = `update my_web.order set ` +
+                str +
+                ` where id = ${ID}`;
+                connecting.query(select,(err, result) => {
+                  if (!err) {
+                    res.send({
+                      data: 'ok',
+                      result: 'succeed',
+                      errorCode: 200,
+                      message: '',
+                    });
+                  } else {
+                    res.send({
+                      data: 'ok',
+                      result: 'succeed',
+                      errorCode: 200,
+                      message: '数据更新有问题',
+                    });
+                  }
+                });
+              }
+            });
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: 200,
+              refund_amount: query.price,
+              message: zfb.alipay_trade_refund_response.sub_msg,
+            });
+          }
         } else {
           res.send({
             result: 'error',
