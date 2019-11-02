@@ -291,17 +291,17 @@ router.post('/my/register.json', function(req, res, next) { // 注册
   }
 });
 
-
-router.get('/my/address.json', function(req, res, next) { // 地址
+router.post('/my/editAddress.json', function(req, res, next) { // 新增地址
   try {
     const mysql = require('mysql');
-    const query = req.query;
+    // const query = req.query;
+    const query = req.body;
     var pool = mysql.createPool(host);
-    if (checkFn(['ID'], query, res)) {
-      let address = query.address ? query.address : '';
-      if (typeof(address) === 'object') {
-        address = JSON.stringify(address);
-      }
+    if (checkFn(['id', 'address'], query, res)) {
+      // let address = query.address ? query.address : '';
+      // if (typeof(address) === 'object') {
+      //   address = JSON.stringify(address);
+      // }
       pool.getConnection((err, connecting) => {
         if (err) {
           res.send({
@@ -311,7 +311,7 @@ router.get('/my/address.json', function(req, res, next) { // 地址
           });
         } else { // 链接成功
           const time = DFormat();
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.ID}`
+          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
           connecting.query(select2,(err, result) => {
             if (!err) {
               if (!result || !result.length) {
@@ -320,32 +320,183 @@ router.get('/my/address.json', function(req, res, next) { // 地址
                   errorCode: err,
                   message: '修改失败, 没查询到有该用户',
                 });
+              } else {
+                const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
+                const Arr = [];
+                const Address = JSON.parse(query.address);
+                if (query.key || query.key === 0) { // 编辑
+                  address.forEach((e, k) => {
+                    if (`${k}` === `${query.key}`) {
+                      if (Address.default) {
+                        Arr.unshift({
+                          ...Address,
+                        })
+                      } else {
+                        Arr.push({
+                          ...Address,
+                        })
+                      }
+                    } else if (Address.default) {
+                      Arr.push({
+                        ...e,
+                        default: undefined,
+                      })
+                    } else {
+                      Arr.push({
+                        ...e,
+                      })
+                    }
+                  });
+                } else { // 新建一个地址
+                  address.forEach(e => {
+                    if (Address.default) {
+                      Arr.push({
+                        ...e,
+                        default: undefined,
+                      })
+                    } else {
+                      Arr.push({
+                        ...e,
+                      })
+                    }
+                  });
+                  if (Address.default) {
+                    Arr.unshift(Address);
+                  } else {
+                    Arr.push(Address);
+                  }
+                }
+                var select = `update my_web.USE set ` +
+                `address = '${JSON.stringify(Arr)}'` +
+                ` where USE_ID = ${query.id}`;
+                connecting.query(select,(err, result) => {
+                  if (!err) {
+                    res.send({
+                      result: 'succeed',
+                      data: result,
+                      errorCode: 200,
+                      message: '地址修改成功',
+                    });
+                  } else {
+                    res.send({
+                      result: 'error',
+                      errorCode: err,
+                      message: '地址修改失败',
+                    });
+                  }
+                });
               }
-              console.log(3232)
+            } else {
               res.send({
                 result: 'error',
                 errorCode: err,
-                message: 'ok',
+                message: '查询失败',
               });
-              var select = `update my_web.USE set ` +
-              `address = '${query.address}'` +
-              ` where USE_ID = ${query.ID}`;
-              connecting.query(select,(err, result) => {
-                if (!err) {
-                  res.send({
-                    result: 'succeed',
-                    data: result,
-                    errorCode: 200,
-                    message: '地址修改成功',
-                  });
-                } else {
-                  res.send({
-                    result: 'error',
-                    errorCode: err,
-                    message: '地址修改失败',
-                  });
-                }
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.get('/my/getAddress.json', function(req, res, next) { // 地址
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    if (checkFn(['id'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + 'address' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result[0] && result[0].address ? JSON.parse(result[0].address) : null,
+                errorCode: 200,
+                message: '查询成功',
               });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '查询失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['id', 'key'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          const time = DFormat();
+          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+          connecting.query(select2,(err, result) => {
+            if (!err) {
+              if (!result || !result.length) {
+                res.send({
+                  result: 'error',
+                  errorCode: err,
+                  message: '删除失败, 没查询到有该用户',
+                });
+              } else {
+                const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
+                address.splice(query.key, 1);
+                var select = `update my_web.USE set ` +
+                `address = '${JSON.stringify(address)}'` +
+                ` where USE_ID = ${query.id}`;
+                connecting.query(select,(err, result) => {
+                  if (!err) {
+                    res.send({
+                      result: 'succeed',
+                      data: result,
+                      errorCode: 200,
+                      message: '地址删除成功',
+                    });
+                  } else {
+                    res.send({
+                      result: 'error',
+                      errorCode: err,
+                      message: '地址删除失败',
+                    });
+                  }
+                });
+              }
             } else {
               res.send({
                 result: 'error',
@@ -964,13 +1115,13 @@ router.get('/my/getDeviceList.json', function(req, res, next) { // 查询设备
           message: '数据库连接失败',
         });
       } else { // 链接成功
-        var select = 'select ' + '*' + ' from ' + 'my_web.device'
+        var select = 'select ' + '*' + ' from ' + 'my_web.device' + ' order by usable desc'
         if (query.type && query.id) {
-          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where tab_type = '${query.type}' and id = '${query.id}'`
+          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where tab_type = '${query.type}' and id = '${query.id}'` + ' order by usable desc'
         } else if (query.type) {
-          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where tab_type = '${query.type}'`
+          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where tab_type = '${query.type}'` + ' order by usable desc'
         } else if (query.id) {
-          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where id = '${query.id}'`
+          select = 'select ' + '*' + ' from ' + 'my_web.device' + ` where id = '${query.id}'` + ' order by usable desc'
         }
         connecting.query(select,(err, result) => {
           if (!err) {

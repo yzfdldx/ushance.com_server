@@ -134,6 +134,7 @@ router.post('/web/yanqian.json', async function(req, res, next) {
   const verify = await alipaySdk.checkNotifySign(req.body);
   const Data = req.body.Object;
   console.log('yanqian')
+  console.log(JSON.stringify(req.body))
   if (Data) {
     const id = Data.out_trade_no;
     const price = Data.total_amount;
