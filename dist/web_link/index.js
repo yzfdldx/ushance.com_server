@@ -533,12 +533,15 @@ router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部
             message: '数据库连接失败',
           });
         } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
+          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
+          if (`${query.id}` === '1') {
+            var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1` + ' order by id desc'
+          }
           connecting.query(select,(err, result) => {
             if (!err) {
               let Arr = [];
               if (result) {
-                Arr = result.map(e => {
+                Arr = result.filter(e => !e.hidden).map(e => {
                   let payPrice = 0;
                   let payId = ''
                   try {
@@ -554,6 +557,7 @@ router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部
                     payData: undefined,
                     payPrice,
                     payId,
+                    hidden: undefined
                   }
                 });
               }
@@ -1040,10 +1044,11 @@ router.get('/my/order/deleteOrder.json', function(req, res, next) { // 删除单
 });
 
 // 编辑单子
-router.get('/my/order/editOrder.json', function(req, res, next) { // 编辑单子
+router.post('/my/order/editOrder.json', function(req, res, next) { // 编辑单子
   try {
     const mysql = require('mysql');
-    const query = req.query;
+    // const query = req.query;
+    const query = req.body;
     if (checkFn(['ID'], query, res)) {
       var pool = mysql.createPool(host);
       pool.getConnection((err, connecting) => {
@@ -1069,6 +1074,12 @@ router.get('/my/order/editOrder.json', function(req, res, next) { // 编辑单�
           }
           if (query.payment) {
             str += str ? `, payment = '${query.payment}'` : `payment = '${query.payment}'`
+          }
+          if (query.state) {
+            str += str ? `, state = '${query.state}'` : `state = '${query.state}'`
+          }
+          if (query.hidden) {
+            str += str ? `, hidden = '${query.hidden}'` : `hidden = '${query.hidden}'`
           }
           var select = `update my_web.order set ` +
           str +
