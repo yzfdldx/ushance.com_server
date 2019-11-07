@@ -345,7 +345,8 @@ router.post('/web/refund.json', async function(req, res, next) {
                 let str = '';
                  if ('payData') {
                   str += str ? `, payData = '{}'` : `payData = '{}'`;
-                } else if ('payment') {
+                }
+                if ('payment') {
                   str += str ? `, payment = '${0}'` : `payment = '${0}'`;
                 }
                 var select = `update my_web.order set ` +
