@@ -67,7 +67,9 @@ router.get('/web/pay.json', async function(req, res, next) {
       const formData = new AlipayFormData();
       formData.setMethod('get');
       formData.addField('notifyUrl', 'https://www.ushance.com/zfb_sdk/web/yanqian.json');
+      formData.addField('returnUrl', 'https://www.ushance.com/#/zfb_sdk');
       formData.addField('bizContent', {
+        qr_pay_mode: 1,
         outTradeNo: query.id, // 唯一值
         productCode: 'FAST_INSTANT_TRADE_PAY',
         totalAmount: query.price,
