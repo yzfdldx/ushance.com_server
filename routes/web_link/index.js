@@ -52,11 +52,18 @@ const checkFn = (e, query, res) => {
   return false
 }
 
+// var host = {
+//   host: '149.129.177.101',
+//   port: 3306,
+//   database: 'my_web', // 数据库
+//   user: 'yzf',
+//   password: 'Yzf-1234',
+// }
 var host = {
-  host: '149.129.177.101',
+  host: '39.100.225.94', // 149.129.177.101
   port: 3306,
   database: 'my_web', // 数据库
-  user: 'yzf',
+  user: 'yzflhez',
   password: 'Yzf-1234',
 }
 // 个人信息 ***************************
@@ -1456,6 +1463,117 @@ router.get('/city.json', function(req, res, next) { // 查询城市
         result: 'error',
         errorCode: err,
         message: '查询失败',
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+// 建材、环境 ***********************************
+router.post('/jiancai/getList.json', async (req, res, next) => {
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (true) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + '*' + ' from ' + 'my_web.jiancai';
+          connecting.query(select, (err, result) => {
+            if (!err && result) {
+              const Json = {};
+              result.forEach(e => {
+                if (Json[e.step1] && Json[e.step1][e.step2] && Json[e.step1][e.step2][e.step3]) {
+                  Json[e.step1][e.step2][e.step3].push(e.step4);
+                } else if (Json[e.step1] && Json[e.step1][e.step2]) {
+                  Json[e.step1][e.step2][e.step3] = [e.step4];
+                } else if (Json[e.step1]) {
+                  const te = {};
+                  te[e.step3] = [e.step4];
+                  Json[e.step1][e.step2] = te;
+                } else {
+                  const te = {};
+                  te[e.step3] = [e.step4];
+                  const te2 = {};
+                  te2[e.step2] = te;
+                  Json[e.step1] = te2;
+                }
+              });
+              res.send({
+                result: 'succeed',
+                data: Json,
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '用户名或者密码错误',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/huanjing/getList.json', async (req, res, next) => {
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (true) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + '*' + ' from ' + 'my_web.huanjing';
+          connecting.query(select, (err, result) => {
+            if (!err && result) {
+              const Json = {};
+              result.forEach(e => {
+                if (Json[e.step1]) {
+                  Json[e.step1].push(e.step2);
+                } else {
+                  Json[e.step1] = [e.step2];
+                }
+              });
+              res.send({
+                result: 'succeed',
+                data: Json,
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '用户名或者密码错误',
+              });
+            }
+          });
+        }
       });
     }
   } catch (error) {

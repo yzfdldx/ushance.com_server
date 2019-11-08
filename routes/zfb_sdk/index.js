@@ -51,10 +51,10 @@ const checkFn = (e, query, res) => {
 }
 
 var host = {
-  host: '149.129.177.101',
+  host: '39.100.225.94', // 149.129.177.101
   port: 3306,
   database: 'my_web', // 数据库
-  user: 'yzf',
+  user: 'yzflhez',
   password: 'Yzf-1234',
 }
 
