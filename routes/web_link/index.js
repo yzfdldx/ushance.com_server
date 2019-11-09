@@ -922,6 +922,62 @@ router.get('/my/order/addOrder.json', function(req, res, next) { // 新增订单
   }
 });
 
+router.get('/my/order/addJiancaiHuanjingOrder.json', function(req, res, next) { // 新增订单
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'number', 'test_parameter'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          const time = DFormat();
+          const address = '{"address":["浙江省","浙江省-杭州市","浙江省-杭州市-西湖区"],"detail":"五联西苑","name":"志飞","phone":"18842897729","default":true}'
+          var select = `INSERT INTO my_web.order (` +
+          `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, order_type, number, payData` +
+          `) VALUES ( ` +
+          `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
+          `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
+          `'${query.ADDRESS ? query.ADDRESS : ''}', '1', ` +
+          `'yzf', '${address}', ` +
+          `'${time}', 0, ` +
+          `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
+          `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
+          `1, '${query.number ? query.number : 0}',` +
+          `'${query.payData ? query.payData : "{}"}')`
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result,
+                errorCode: 200,
+                message: '新增订单成功',
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '新增订单失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
 router.get('/my/order/addPublishOrder.json', function(req, res, next) { // 新增发单
   try {
     const mysql = require('mysql');
@@ -1535,6 +1591,64 @@ router.post('/jiancai/getList.json', async (req, res, next) => {
   }
 });
 
+router.post('/jiancai/getDetail.json', async (req, res, next) => {
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['data'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + '*' + ' from ' + 'my_web.jiancai';
+          connecting.query(select, (err, result) => {
+            if (!err && result) {
+              let Data = [];
+              try {
+                Data = JSON.parse(query.data);
+              } catch (error) {
+                //
+              }
+              const Arr = [];
+              Data.forEach(e => {
+                const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2 && e2.step3 === e.step3 && e2.step4 === e.step4);
+                if (It) {
+                  Arr.push({
+                    ...It
+                  })
+                }
+              })
+              res.send({
+                a:Data,
+                result: 'succeed',
+                data: Arr,
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '用户名或者密码错误',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
 router.post('/huanjing/getList.json', async (req, res, next) => {
   try {
     const mysql = require('mysql');
@@ -1564,6 +1678,63 @@ router.post('/huanjing/getList.json', async (req, res, next) => {
               res.send({
                 result: 'succeed',
                 data: Json,
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '用户名或者密码错误',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/huanjing/getDetail.json', async (req, res, next) => {
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['data'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + '*' + ' from ' + 'my_web.huanjing';
+          connecting.query(select, (err, result) => {
+            if (!err && result) {
+              let Data = [];
+              try {
+                Data = JSON.parse(query.data);
+              } catch (error) {
+                //
+              }
+              const Arr = [];
+              Data.forEach(e => {
+                const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2);
+                if (It) {
+                  Arr.push({
+                    ...It
+                  })
+                }
+              })
+              res.send({
+                result: 'succeed',
+                data: Arr,
               });
             } else {
               res.send({
