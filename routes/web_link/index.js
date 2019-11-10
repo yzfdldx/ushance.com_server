@@ -235,6 +235,57 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
     });
   }
 });
+router.post('/my/detail.json', function(req, res, next) { // 登录
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = "${query.id}"`
+          connecting.query(select, (err, result) => {
+            if (!err && result[0]) {
+              const Item = result[0];
+              const address = Item.address;
+              if (address && typeof(address) === 'string') {
+                try {
+                  Item.address =JSON.parse(address);
+                } catch (error) {
+                  // 
+                }
+              }
+              delete Item.USE_PASSWORD;
+              res.send({
+                result: 'succeed',
+                data: Item,
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '不存在该用户',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
 // 注册
 router.post('/my/register.json', function(req, res, next) { // 注册
   try {
