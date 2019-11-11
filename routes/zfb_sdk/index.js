@@ -15,6 +15,38 @@ const alipaySdk = new AlipaySdk({
   alipayPublicKey: fs.readFileSync('./public/ssl/zfb/public-key.pem', 'ascii'), // 支付宝公钥
 });
 
+const DFormat = (value) => { // 日期Filter
+  const Str = value;
+  const ZeorFn = (a) => {
+    let b;
+    if (a < 10) {
+      b = `0${a}`;
+    } else {
+      b = `${a}`;
+    }
+    return b;
+  };
+  try{
+    let oDate;
+    let onoff = false;
+    if (Str) {
+      oDate = new Date(Str);
+    } else {
+      oDate = new Date();
+    }
+    const year = oDate.getFullYear();
+    const month = oDate.getMonth() + 1;
+    const date = oDate.getDate();
+    const Hours = oDate.getHours();
+    const Minutes = oDate.getMinutes();
+    const Seconds = oDate.getSeconds();
+    return `${year}-${ZeorFn(month)}-${ZeorFn(date)} ` +
+    `${ZeorFn(Hours)}:${ZeorFn(Minutes)}:${ZeorFn(Seconds)}`;
+  } catch (err) {
+    // alert('代码出错请联系：yzflhez@126.com')
+    return value
+  }
+};
 
 function download ( url, callback ) {
   https.get( url,function(res){
@@ -357,7 +389,7 @@ router.post('/web/refund.json', async function(req, res, next) {
                 connecting.query(select,(err, result) => {
                   if (!err) {
                     res.send({
-                      data: 'ok',
+                      data: zfb.alipay_trade_refund_response,
                       result: 'succeed',
                       errorCode: 200,
                       message: '',

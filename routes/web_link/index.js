@@ -153,6 +153,9 @@ router.post('/my/load.json', function(req, res, next) { // 登录
                 }
               }
               delete Item.USE_PASSWORD;
+              if (Item.money_cart) {
+                Item.money_cart = JSON.parse(Item.money_cart);
+              }
               res.send({
                 result: 'succeed',
                 data: [Item],
@@ -205,6 +208,9 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
                   }
                 }
                 delete Item.USE_PASSWORD;
+                if (Item.money_cart) {
+                  Item.money_cart = JSON.parse(Item.money_cart);
+                }
                 res.send({
                   result: 'succeed',
                   data: [Item],
@@ -235,7 +241,7 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
     });
   }
 });
-router.post('/my/detail.json', function(req, res, next) { // 登录
+router.post('/my/detail.json', function(req, res, next) { // 查看详情
   try {
     const mysql = require('mysql');
     // const query = req.query;
@@ -257,10 +263,13 @@ router.post('/my/detail.json', function(req, res, next) { // 登录
               const address = Item.address;
               if (address && typeof(address) === 'string') {
                 try {
-                  Item.address =JSON.parse(address);
+                  Item.address = JSON.parse(address);
                 } catch (error) {
                   // 
                 }
+              }
+              if (Item.money_cart) {
+                Item.money_cart = JSON.parse(Item.money_cart);
               }
               delete Item.USE_PASSWORD;
               res.send({
@@ -560,6 +569,72 @@ router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
                 result: 'error',
                 errorCode: err,
                 message: '查询失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+// 编辑用户
+router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['ID'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          let str = '';
+          if (query.USE_EMAIL) {
+            str += str ? `, USE_EMAIL = '${query.USE_EMAIL}'` : `USE_EMAIL = '${query.USE_EMAIL}'`
+          }
+          if (query.USE_MESSAGE) {
+            str += str ? `, USE_MESSAGE = ${query.USE_MESSAGE}` : `USE_MESSAGE = ${query.USE_MESSAGE}`
+          }
+          if (query.money) {
+            str += str ? `, money = '${query.money}'` : `money = '${query.money}'`
+          }
+          if (query.pre_money) {
+            str += str ? `, pre_money = '${query.pre_money}'` : `pre_money = '${query.pre_money}'`
+          }
+          if (query.bill_money) {
+            str += str ? `, bill_money = '${query.bill_money}'` : `bill_money = '${query.bill_money}'`
+          }
+          if (query.money_cart) {
+            str += str ? `, money_cart = '${query.money_cart}'` : `money_cart = '${query.money_cart}'`
+          }
+          var select = `update my_web.USE set ` +
+          str +
+          ` where USE_ID = ${query.ID}`;
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result,
+                errorCode: 200,
+                message: '编辑成功',
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '编辑失败',
               });
             }
           });
