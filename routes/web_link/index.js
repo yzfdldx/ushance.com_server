@@ -628,6 +628,9 @@ router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
           if (query.refund_cardId) {
             str += str ? `, refund_cardId = '${query.refund_cardId}'` : `refund_cardId = '${query.refund_cardId}'`
           }
+          if (query.bill_money_type) {
+            str += str ? `, bill_money_type = '${query.bill_money_type}'` : `bill_money_type = '${query.bill_money_type}'`
+          }
           if (query.bill_money_data) {
             str += str ? `, bill_money_data = '${query.bill_money_data}'` : `bill_money_data = '${query.bill_money_data}'`
           }
@@ -1755,10 +1758,15 @@ router.post('/jiancai/getDetail.json', async (req, res, next) => {
               }
               const Arr = [];
               Data.forEach(e => {
-                const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2 && e2.step3 === e.step3 && e2.step4 === e.step4);
-                if (It) {
-                  Arr.push({
-                    ...It
+                if (e.step4) {
+                  const Arr2 = e.step4.split(',');
+                  Arr2.forEach(e3 => {
+                    const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2 && e2.step3 === e.step3 && e2.step4 === e3);
+                    if (It) {
+                      Arr.push({
+                        ...It
+                      })
+                    }
                   })
                 }
               })
@@ -1863,10 +1871,15 @@ router.post('/huanjing/getDetail.json', async (req, res, next) => {
               }
               const Arr = [];
               Data.forEach(e => {
-                const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2);
-                if (It) {
-                  Arr.push({
-                    ...It
+                if (e.step2) {
+                  const Arr2 = e.step2.split(',');
+                  Arr2.forEach(e3 => {
+                    const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e3);
+                    if (It) {
+                      Arr.push({
+                        ...It
+                      })
+                    }
                   })
                 }
               })
