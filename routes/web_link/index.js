@@ -628,6 +628,9 @@ router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
           if (query.refund_cardId) {
             str += str ? `, refund_cardId = '${query.refund_cardId}'` : `refund_cardId = '${query.refund_cardId}'`
           }
+          if (query.bill_money_data) {
+            str += str ? `, bill_money_data = '${query.bill_money_data}'` : `bill_money_data = '${query.bill_money_data}'`
+          }
           var select = `update my_web.USE set ` +
           str +
           ` where USE_ID = ${query.ID}`;
