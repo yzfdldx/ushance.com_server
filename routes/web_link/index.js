@@ -619,6 +619,12 @@ router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
           if (query.money_cart) {
             str += str ? `, money_cart = '${query.money_cart}'` : `money_cart = '${query.money_cart}'`
           }
+          if (query.refund_money) {
+            str += str ? `, refund_money = '${query.refund_money}'` : `refund_money = '${query.refund_money}'`
+          }
+          if (query.refund_type) {
+            str += str ? `, refund_type = '${query.refund_type}'` : `refund_type = '${query.refund_type}'`
+          }
           var select = `update my_web.USE set ` +
           str +
           ` where USE_ID = ${query.ID}`;
