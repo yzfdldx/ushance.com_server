@@ -625,6 +625,9 @@ router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
           if (query.refund_type) {
             str += str ? `, refund_type = '${query.refund_type}'` : `refund_type = '${query.refund_type}'`
           }
+          if (query.refund_cardId) {
+            str += str ? `, refund_cardId = '${query.refund_cardId}'` : `refund_cardId = '${query.refund_cardId}'`
+          }
           var select = `update my_web.USE set ` +
           str +
           ` where USE_ID = ${query.ID}`;
