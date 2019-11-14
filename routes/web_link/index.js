@@ -681,9 +681,9 @@ router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部
             message: '数据库连接失败',
           });
         } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
+          var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
           if (`${query.id}` === '1') {
-            var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1` + ' order by id desc'
+            var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1` + ' order by id desc'
           }
           connecting.query(select,(err, result) => {
             if (!err) {
@@ -694,8 +694,8 @@ router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部
                   let payId = ''
                   try {
                     const pay = JSON.parse(e.payData);
-                    payPrice = parseFloat(pay.data.total_amount);
-                    // payPrice = parseFloat(pay.price);
+                    // payPrice = parseFloat(pay.data.total_amount);
+                    payPrice = e.payPrice ? parseFloat(e.payPrice) : 0;
                     payId = pay.id;
                   } catch (error) {
                     //
@@ -1063,11 +1063,12 @@ router.get('/my/order/addOrder.json', function(req, res, next) { // 新增订单
   }
 });
 
-router.get('/my/order/addJiancaiHuanjingOrder.json', function(req, res, next) { // 新增订单
+router.post('/my/order/addJiancaiHuanjingOrder.json', function(req, res, next) { // 新增订单
   try {
     const mysql = require('mysql');
-    const query = req.query;
-    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'number', 'test_parameter'], query, res)) {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'number', 'test_parameter', 'payPrice', 'pay_type'], query, res)) {
       var pool = mysql.createPool(host);
       pool.getConnection((err, connecting) => {
         if (err) {
@@ -1080,7 +1081,7 @@ router.get('/my/order/addJiancaiHuanjingOrder.json', function(req, res, next) { 
           const time = DFormat();
           const address = '{"address":["浙江省","浙江省-杭州市","浙江省-杭州市-西湖区"],"detail":"五联西苑","name":"志飞","phone":"18842897729","default":true}'
           var select = `INSERT INTO my_web.order (` +
-          `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, order_type, number, payData` +
+          `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, order_type, number, payPrice, pay_type, payData` +
           `) VALUES ( ` +
           `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
           `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
@@ -1090,6 +1091,7 @@ router.get('/my/order/addJiancaiHuanjingOrder.json', function(req, res, next) { 
           `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
           `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
           `1, '${query.number ? query.number : 0}',` +
+          `'${query.payPrice ? query.payPrice : 0}', '${query.pay_type ? query.pay_type : ''}',` +
           `'${query.payData ? query.payData : "{}"}')`
           connecting.query(select,(err, result) => {
             if (!err) {
@@ -1348,6 +1350,12 @@ router.post('/my/order/editOrder.json', function(req, res, next) { // 编辑单�
           }
           if (query.hidden) {
             str += str ? `, hidden = '${query.hidden}'` : `hidden = '${query.hidden}'`
+          }
+          if (query.payPrice) {
+            str += str ? `, payPrice = '${query.payPrice}'` : `payPrice = '${query.payPrice}'`
+          }
+          if (query.pay_type) {
+            str += str ? `, pay_type = '${query.pay_type}'` : `pay_type = '${query.pay_type}'`
           }
           var select = `update my_web.order set ` +
           str +
