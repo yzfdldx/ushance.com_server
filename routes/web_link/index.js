@@ -988,11 +988,12 @@ router.get('/my/order/getOrderDetail.json', function(req, res, next) { // 查询
 });
 
 // 新增
-router.get('/my/order/addOrder.json', function(req, res, next) { // 新增订单
+router.post('/my/order/addOrder.json', function(req, res, next) { // 新增订单
   try {
     const mysql = require('mysql');
-    const query = req.query;
-    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'device_id', 'device_name', 'number', 'test_parameter'], query, res)) {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'device_id', 'device_name', 'number', 'test_parameter', 'payPrice', 'pay_type'], query, res)) {
       var pool = mysql.createPool(host);
       pool.getConnection((err, connecting) => {
         if (err) {
@@ -1010,44 +1011,46 @@ router.get('/my/order/addOrder.json', function(req, res, next) { // 新增订单
                 res.send({
                   result: 'error',
                   errorCode: err,
-                  message: '新增失败',
+                  message: '不存在该设备',
+                });
+              } else {
+                const Item = result[0];
+                var select = `INSERT INTO my_web.order (` +
+                `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number, payPrice, pay_type, payData` +
+                `) VALUES ( ` +
+                `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
+                `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
+                `'${query.ADDRESS ? query.ADDRESS : ''}', '${Item.USE_ID ? Item.USE_ID : ''}', ` +
+                `'${Item.USE_NAME ? Item.USE_NAME : ''}', '${Item.address ? Item.address : ''}', ` +
+                `'${time}', 0, ` +
+                `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
+                `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
+                `'${query.device_id ? query.device_id : 0}', '${query.device_name ? query.device_name : ''}', ` +
+                `1, '${query.number ? query.number : 0}',` +
+                `'${query.payPrice ? query.payPrice : 0}', '${query.pay_type ? query.pay_type : ''}',` +
+                `'${query.payData ? query.payData : "{}"}')`;
+                connecting.query(select,(err, result) => {
+                  if (!err) {
+                    res.send({
+                      result: 'succeed',
+                      data: result,
+                      errorCode: 200,
+                      message: '新增订单成功',
+                    });
+                  } else {
+                    res.send({
+                      result: 'error',
+                      errorCode: err,
+                      message: '新增订单失败',
+                    });
+                  }
                 });
               }
-              const Item = result[0];
-              var select = `INSERT INTO my_web.order (` +
-              `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number, payData` +
-              `) VALUES ( ` +
-              `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
-              `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
-              `'${query.ADDRESS ? query.ADDRESS : ''}', '${Item.USE_ID ? Item.USE_ID : ''}', ` +
-              `'${Item.USE_NAME ? Item.USE_NAME : ''}', '${Item.address ? Item.address : ''}', ` +
-              `'${time}', 0, ` +
-              `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
-              `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
-              `'${query.device_id ? query.device_id : 0}', '${query.device_name ? query.device_name : ''}', ` +
-              `1, '${query.number ? query.number : 0}',` +
-              `'${query.payData ? query.payData : "{}"}')`
-              connecting.query(select,(err, result) => {
-                if (!err) {
-                  res.send({
-                    result: 'succeed',
-                    data: result,
-                    errorCode: 200,
-                    message: '新增订单成功',
-                  });
-                } else {
-                  res.send({
-                    result: 'error',
-                    errorCode: err,
-                    message: '新增订单失败',
-                  });
-                }
-              });
             } else {
               res.send({
                 result: 'error',
                 errorCode: err,
-                message: '查询失败',
+                message: '新增订单失败',
               });
             }
           });
