@@ -15,7 +15,9 @@ var index = require('./' + this_dev + '/index'); // pc首页
 // 接口配置文件
 var web_index = require('./' + this_dev + '/web_link/index'); // pc首页
 // 支付宝支付
-var zfb_sdk = require('./' + this_dev + '/zfb_sdk/index');;
+var zfb_sdk = require('./' + this_dev + '/zfb_sdk/index');
+// 微信支付
+var weixing_sdk = require('./' + this_dev + '/weixing_sdk/index');
 
 var app = express();
 
@@ -74,6 +76,8 @@ app.use('/web/index', web_index);
 
 // 支付宝支付
 app.use('/zfb_sdk', zfb_sdk);
+// 微信支付
+app.use('/weixing_sdk', weixing_sdk);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

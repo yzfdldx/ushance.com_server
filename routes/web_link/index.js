@@ -1918,4 +1918,129 @@ router.post('/huanjing/getDetail.json', async (req, res, next) => {
   }
 });
 
+// 首页
+router.get('/bangdan/deviceList.json', function(req, res, next) { // 设备榜单
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    var pool = mysql.createPool(host);
+    pool.getConnection((err, connecting) => {
+      if (err) {
+        res.send({
+          result: 'error',
+          errorCode: err,
+          message: '数据库连接失败',
+        });
+      } else { // 链接成功
+        var select = 'select ' + '*' + ' from ' + 'my_web.device where usable = 1' + ' order by id desc LIMIT 10'
+        connecting.query(select,(err, result) => {
+          if (!err) {
+            res.send({
+              result: 'succeed',
+              data: result,
+              errorCode: 200,
+              message: '查询成功',
+            });
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '查询失败',
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.get('/bangdan/orderList.json', function(req, res, next) { // 榜单
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    var pool = mysql.createPool(host);
+    pool.getConnection((err, connecting) => {
+      if (err) {
+        res.send({
+          result: 'error',
+          errorCode: err,
+          message: '数据库连接失败',
+        });
+      } else { // 链接成功
+        var select = 'select ' + '*' + ' from ' + 'my_web.order where state != 1' + ' order by id desc LIMIT 10'
+        connecting.query(select,(err, result) => {
+          if (!err) {
+            res.send({
+              result: 'succeed',
+              data: result,
+              errorCode: 200,
+              message: '查询成功',
+            });
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '查询失败',
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.get('/bangdan/okOrderList.json', function(req, res, next) { // 成交榜单
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    var pool = mysql.createPool(host);
+    pool.getConnection((err, connecting) => {
+      if (err) {
+        res.send({
+          result: 'error',
+          errorCode: err,
+          message: '数据库连接失败',
+        });
+      } else { // 链接成功
+        var select = 'select ' + '*' + ' from ' + 'my_web.order where state = 1' + ' order by id desc LIMIT 10'
+        connecting.query(select,(err, result) => {
+          if (!err) {
+            res.send({
+              result: 'succeed',
+              data: result,
+              errorCode: 200,
+              message: '查询成功',
+            });
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '查询失败',
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+
 module.exports = router;
