@@ -1702,7 +1702,13 @@ router.post('/jiancai/getList.json', async (req, res, next) => {
           connecting.query(select, (err, result) => {
             if (!err && result) {
               const Json = {};
-              result.forEach(e => {
+              result.map(ee => ({
+                id: ee.id,
+                step1: ee.step1 ? ee.step1.split('\n').join('') : '',
+                step2: ee.step2 ? ee.step2.split('\n').join('') : '',
+                step3: ee.step3 ? ee.step3.split('\n').join('') : '',
+                step4: ee.step4 ? ee.step4.split('\n').join('') : '',
+              })).forEach(e => {
                 if (Json[e.step1] && Json[e.step1][e.step2] && Json[e.step1][e.step2][e.step3]) {
                   Json[e.step1][e.step2][e.step3].push(e.step4);
                 } else if (Json[e.step1] && Json[e.step1][e.step2]) {
@@ -1768,11 +1774,22 @@ router.post('/jiancai/getDetail.json', async (req, res, next) => {
                 //
               }
               const Arr = [];
+              const result_Now = result.map(ee => ({
+                id: ee.id,
+                step1: ee.step1 ? ee.step1.split('\n').join('') : '',
+                step2: ee.step2 ? ee.step2.split('\n').join('') : '',
+                step3: ee.step3 ? ee.step3.split('\n').join('') : '',
+                step4: ee.step4 ? ee.step4.split('\n').join('') : '',
+                result1: ee.result1 ? ee.result1.split('\n').join('') : '',
+                result2: ee.result2 ? ee.result2.split('\n').join('') : '',
+                result3: ee.result3 ? ee.result3.split('\n').join('') : '',
+                result4: ee.result4,
+              }))
               Data.forEach(e => {
                 if (e.step4) {
                   const Arr2 = e.step4.split(',');
                   Arr2.forEach(e3 => {
-                    const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2 && e2.step3 === e.step3 && e2.step4 === e3);
+                    const It = result_Now.find(e2 => e2.step1 === e.step1 && e2.step2 === e.step2 && e2.step3 === e.step3 && e2.step4 === e3);
                     if (It) {
                       Arr.push({
                         ...It
@@ -1825,7 +1842,10 @@ router.post('/huanjing/getList.json', async (req, res, next) => {
           connecting.query(select, (err, result) => {
             if (!err && result) {
               const Json = {};
-              result.forEach(e => {
+              result.map(ee => ({
+                step1: ee.step1 ? ee.step1.split('\n').join('') : '',
+                step2: ee.step2 ? ee.step2.split('\n').join('') : '',
+              })).forEach(e => {
                 if (Json[e.step1]) {
                   Json[e.step1].push(e.step2);
                 } else {
@@ -1880,12 +1900,19 @@ router.post('/huanjing/getDetail.json', async (req, res, next) => {
               } catch (error) {
                 //
               }
+              const result_Now = result.map(ee => ({
+                id: ee.id,
+                step1: ee.step1 ? ee.step1.split('\n').join('') : '',
+                step2: ee.step2 ? ee.step2.split('\n').join('') : '',
+                result1: ee.result1 ? ee.result1.split('\n').join('') : '',
+                result2: ee.result2,
+              }))
               const Arr = [];
               Data.forEach(e => {
                 if (e.step2) {
                   const Arr2 = e.step2.split(',');
                   Arr2.forEach(e3 => {
-                    const It = result.find(e2 => e2.step1 === e.step1 && e2.step2 === e3);
+                    const It = result_Now.find(e2 => e2.step1 === e.step1 && e2.step2 === e3);
                     if (It) {
                       Arr.push({
                         ...It
@@ -1896,6 +1923,7 @@ router.post('/huanjing/getDetail.json', async (req, res, next) => {
               })
               res.send({
                 result: 'succeed',
+                aa: result_Now,
                 data: Arr,
               });
             } else {
