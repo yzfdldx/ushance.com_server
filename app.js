@@ -18,6 +18,8 @@ var web_index = require('./' + this_dev + '/web_link/index'); // pc首页
 var zfb_sdk = require('./' + this_dev + '/zfb_sdk/index');
 // 微信支付
 var weixing_sdk = require('./' + this_dev + '/weixing_sdk/index');
+// 网银支付
+var wangyin_sdk = require('./' + this_dev + '/wangyin_sdk/index');
 
 var app = express();
 
@@ -78,6 +80,8 @@ app.use('/web/index', web_index);
 app.use('/zfb_sdk', zfb_sdk);
 // 微信支付
 app.use('/weixing_sdk', weixing_sdk);
+// 网银支付
+app.use('/wangyin_sdk', wangyin_sdk);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

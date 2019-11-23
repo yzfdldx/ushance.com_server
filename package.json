@@ -29,7 +29,10 @@
     "qr-image": "^3.2.0",
     "qs": "^6.9.0",
     "serve-favicon": "~2.3.2",
-    "tenpay": "^2.1.18"
+    "sha1": "^1.1.1",
+    "tenpay": "^2.1.18",
+    "underscore": "^1.9.1",
+    "validator": "^12.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
