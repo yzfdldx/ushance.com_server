@@ -316,7 +316,7 @@ router.post('/my/register.json', function(req, res, next) { // 注册
             connecting.query(select,(err, result) => {
               const time = DFormat();
               if (!err && !result[0]) {
-                var select2 = `INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_MESSAGE, USE_ODER, CREATE_DATE, phone) VALUES ( '${query.name}', '${query.password}', '${query.Email}', '${query.massage ? query.massage : ''}', '1', '${time}', '${query.phone}')`
+                var select2 = `INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_ODER, CREATE_DATE, phone) VALUES ( '${query.name}', '${query.password}', '${query.Email}', '1', '${time}', '${query.phone}')`
                 connecting.query(select2,(err, result) => {
                   if (!err) {
                     res.send({
@@ -583,6 +583,8 @@ router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
     });
   }
 });
+
+// 用户交流
 
 // 编辑用户
 router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
