@@ -585,6 +585,223 @@ router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
 });
 
 // 用户交流
+router.post('/my/editMessage.json', function(req, res, next) { // 发送消息
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    var pool = mysql.createPool(host);
+    if (checkFn(['id', 'message'], query, res)) {
+      // let address = query.address ? query.address : '';
+      // if (typeof(address) === 'object') {
+      //   address = JSON.stringify(address);
+      // }
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          const time = DFormat();
+          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+          connecting.query(select2,(err, result) => {
+            if (!err) {
+              if (!result || !result.length) {
+                res.send({
+                  result: 'error',
+                  errorCode: err,
+                  message: '修改失败, 没查询到有该用户',
+                });
+              } else {
+                const address = result[0] && result[0].message ? JSON.parse(result[0].message) : [];
+                const Arr = [];
+                const Address = JSON.parse(query.message);
+                if (query.key || query.key === 0) { // 编辑
+                  address.forEach((e, k) => {
+                    if (`${k}` === `${query.key}`) {
+                      Arr.push({
+                        ...Address,
+                      })
+                    } else {
+                      Arr.push({
+                        ...e,
+                      })
+                    }
+                  });
+                } else { // 新建一个地址
+                  Arr.push(Address);
+                }
+                var select = `update my_web.USE set ` +
+                `message = '${JSON.stringify(Arr)}'` +
+                ` where USE_ID = ${query.id}`;
+                connecting.query(select,(err, result) => {
+                  if (!err) {
+                    res.send({
+                      result: 'succeed',
+                      data: result,
+                      errorCode: 200,
+                      message: '发送成功',
+                    });
+                  } else {
+                    res.send({
+                      result: 'error',
+                      errorCode: err,
+                      message: '发送失败',
+                    });
+                  }
+                });
+              }
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '查询失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.get('/my/getMessage.json', function(req, res, next) { // 获取消息列表
+  try {
+    const mysql = require('mysql');
+    const query = req.query;
+    if (checkFn(['id'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = 'select ' + 'message' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result[0] && result[0].message ? JSON.parse(result[0].message) : null,
+                errorCode: 200,
+                message: '查询成功',
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '查询失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/getUserLIst.json', function(req, res, next) { // 获取消息列表
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    var pool = mysql.createPool(host);
+    pool.getConnection((err, connecting) => {
+      if (err) {
+        res.send({
+          result: 'error',
+          errorCode: err,
+          message: '数据库连接失败',
+        });
+      } else { // 链接成功
+        var select = 'select ' + 'USE_ID, USE_NAME' + ' from ' + 'my_web.USE'
+        connecting.query(select,(err, result) => {
+          if (!err) {
+            res.send({
+              result: 'succeed',
+              data: result,
+              errorCode: 200,
+              message: '查询成功',
+            });
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '查询失败',
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/deleteMessage.json', function(req, res, next) { // 删除消息
+  try {
+    const mysql = require('mysql');
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var pool = mysql.createPool(host);
+      pool.getConnection((err, connecting) => {
+        if (err) {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '数据库连接失败',
+          });
+        } else { // 链接成功
+          var select = `update my_web.USE set ` +
+          `address = '[]'` +
+          ` where USE_ID = ${query.id}`;
+          connecting.query(select,(err, result) => {
+            if (!err) {
+              res.send({
+                result: 'succeed',
+                data: result,
+                errorCode: 200,
+                message: '删除成功',
+              });
+            } else {
+              res.send({
+                result: 'error',
+                errorCode: err,
+                message: '删除失败',
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
 
 // 编辑用户
 router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
