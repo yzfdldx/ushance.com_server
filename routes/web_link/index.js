@@ -616,25 +616,14 @@ router.post('/my/editMessage.json', function(req, res, next) { // 发送消息
                 });
               } else {
                 const address = result[0] && result[0].message ? JSON.parse(result[0].message) : [];
-                const Arr = [];
-                const Address = JSON.parse(query.message);
-                if (query.key || query.key === 0) { // 编辑
-                  address.forEach((e, k) => {
-                    if (`${k}` === `${query.key}`) {
-                      Arr.push({
-                        ...Address,
-                      })
-                    } else {
-                      Arr.push({
-                        ...e,
-                      })
-                    }
-                  });
-                } else { // 新建一个地址
-                  Arr.push(Address);
-                }
+                const Address = query.message;
+                address.push({
+                  type: query.type ? query.type : 'Q',
+                  time: time,
+                  title: Address,
+                })
                 var select = `update my_web.USE set ` +
-                `message = '${JSON.stringify(Arr)}'` +
+                `message = '${JSON.stringify(address)}'` +
                 ` where USE_ID = ${query.id}`;
                 connecting.query(select,(err, result) => {
                   if (!err) {
@@ -716,7 +705,7 @@ router.get('/my/getMessage.json', function(req, res, next) { // 获取消息列�
   }
 });
 
-router.post('/my/getUserLIst.json', function(req, res, next) { // 获取消息列表
+router.post('/my/getUserLIst.json', function(req, res, next) { // 获取用户列表
   try {
     const mysql = require('mysql');
     // const query = req.query;
@@ -734,7 +723,7 @@ router.post('/my/getUserLIst.json', function(req, res, next) { // 获取消息�
           if (!err) {
             res.send({
               result: 'succeed',
-              data: result,
+              data: result.filter(e => e.USE_ID !== 1),
               errorCode: 200,
               message: '查询成功',
             });
@@ -773,7 +762,7 @@ router.post('/my/deleteMessage.json', function(req, res, next) { // 删除消息
           });
         } else { // 链接成功
           var select = `update my_web.USE set ` +
-          `address = '[]'` +
+          `message = '[]'` +
           ` where USE_ID = ${query.id}`;
           connecting.query(select,(err, result) => {
             if (!err) {
@@ -799,6 +788,57 @@ router.post('/my/deleteMessage.json', function(req, res, next) { // 删除消息
       result: 'error',
       errorCode: error,
       message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/messageCall.json', async (req, res, next) => { // 用户交流短信通知
+  try {
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['name'], query, res)) {
+      var RPCClient = require('@alicloud/pop-core').RPCClient;
+      const accessKeyId = 'LTAI4FnGoeswkBXBjhYHqH1y'
+      const secretAccessKey = 'Skqqu37k3XNOSkTvLfpzjxsRtjze6J'
+      var client = new RPCClient({
+        accessKeyId: accessKeyId,
+        accessKeySecret: secretAccessKey,
+        endpoint: 'https://dysmsapi.aliyuncs.com',
+        apiVersion: '2017-05-25'
+      });
+      const time = DFormat();
+      var params = {
+        "RegionId": "cn-hangzhou",
+        "PhoneNumbers": `18842897729,15711220686,17621181669`,
+        "SignName": "ushance",
+        "TemplateCode": "SMS_175465012",
+        "TemplateParam": JSON.stringify({
+          name: query.name,
+          time,
+          code: 000000,
+        }),
+        "OutId": "流水号"
+      }
+      client.request('SendSms', params).then((result) => {
+        res.send({
+          data: result,
+          result: result && result.Code === 'OK' ? 'succeed' : 'error',
+          errorCode: 200,
+          message: result.Message,
+        });
+      }, (ex) => {
+        res.send({
+          result: 'error',
+          errorCode: 'err',
+          message: ex,
+        });
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了',
     });
   }
 });
