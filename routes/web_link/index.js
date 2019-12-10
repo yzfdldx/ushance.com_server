@@ -811,7 +811,7 @@ router.post('/my/messageCall.json', async (req, res, next) => { // 用户交流�
         "RegionId": "cn-hangzhou",
         "PhoneNumbers": `18842897729,15711220686,17621181669`,
         "SignName": "ushance",
-        "TemplateCode": "SMS_175465012",
+        "TemplateCode": "SMS_179160279",
         "TemplateParam": JSON.stringify({
           name: query.name,
           time,
