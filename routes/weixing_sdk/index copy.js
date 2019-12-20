@@ -2,6 +2,19 @@ const urllib = require('urllib');
 const util = require('./util');
 const replyData = msg => util.buildXML(msg ? {return_code: 'FAIL', return_msg: msg} : {return_code: 'SUCCESS'});
 
+const getSign = (params, type = 'MD5') => {
+  const util = require('./util');
+  let str = util.toQueryString(params) + '&key=' + 'lgyyzf1234lgyyzf1234lgyyzf123473';
+  switch (type) {
+    case 'MD5':
+      return util.md5(str).toUpperCase();
+    case 'HMAC-SHA256':
+      return util.sha256(str, 'lgyyzf1234lgyyzf1234lgyyzf123473').toUpperCase();
+    default:
+      throw new Error('signType Error');
+  }
+}
+
 class Payment {
   constructor({appid, mchid, partnerKey, pfx, notify_url, refund_url, spbill_create_ip, sandbox} = {}, debug = false) {
     if (!appid) throw new Error('appid fail');
