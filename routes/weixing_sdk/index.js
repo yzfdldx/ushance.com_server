@@ -127,31 +127,33 @@ var qr = require('qr-image');
 
 router.get('/web/pay.json', async function(req, res, next) {
   try {
-    // const query = req.query;
-    const params = {
-      nonce_str: '5K8264ILsKCH16CQ2202SI8ZNMTM67VS',
-      // spbill_create_ip: '127.0.0.1',
-      out_trade_no: 'yzf_1017183444',
-      body: '商品简单描述',
-      total_fee: '1',
-      // openid: '20191214',
-      trade_type: 'NATIVE',
-      product_id: '商品id'
+    const query = req.query;
+    if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
+      const params = {
+        nonce_str: '5K8264ILsKCH16CQ2202SI8ZNMTM67VS',
+        // spbill_create_ip: '127.0.0.1',
+        out_trade_no: query.id,
+        body: query.describe,
+        total_fee: query.price,
+        // openid: '20191214',
+        trade_type: 'NATIVE',
+        product_id: query.name
+      }
+      let result = await api.unifiedOrder({ // unifiedOrder getNativeUrl
+        ...params
+      });
+      var img = qr.image(result.code_url,{size :10});
+      res.writeHead(200, {'Content-Type': 'image/png'});
+      img.pipe(res);
+      // res.send({
+      //   data: img,
+      //   // prepay_id,
+      //   // code_url,
+      //   result: 'succeed',
+      //   errorCode: 200,
+      //   message: '',
+      // });
     }
-    let result = await api.unifiedOrder({ // unifiedOrder getNativeUrl
-      ...params
-    });
-    var img = qr.image(result.code_url,{size :10});
-    res.writeHead(200, {'Content-Type': 'image/png'});
-    img.pipe(res);
-    // res.send({
-    //   data: img,
-    //   // prepay_id,
-    //   // code_url,
-    //   result: 'succeed',
-    //   errorCode: 200,
-    //   message: '',
-    // });
   } catch (error) {
     res.send({
       result: 'error',
@@ -165,18 +167,17 @@ router.get('/web/pay.json', async function(req, res, next) {
 router.get('/web/query.json', async function(req, res, next) {
   try {
     const query = req.query;
-    let result = await api.orderQuery({ // unifiedOrder getNativeUrl
-      out_trade_no: 'yzf_1017183444',
-    });
-    res.send({
-      data: result,
-      result: 'succeed',
-      errorCode: 200,
-      message: '2',
-    });
-    // if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
-      
-    // }
+    if (checkFn(['id'], query, res)) {
+      let result = await api.orderQuery({ // unifiedOrder getNativeUrl
+        out_trade_no: query.id,
+      });
+      res.send({
+        data: result,
+        result: 'succeed',
+        errorCode: 200,
+        message: '2',
+      });
+    }
   } catch (error) {
     res.send({
       result: 'error',
@@ -227,9 +228,10 @@ router.get('/web/refund.json', async function(req, res, next) {
     console.log(1111)
     let result = await api.refund({
       // transaction_id, out_trade_no 二选一
-      // transaction_id: '4200000438201912143497771095',
-      // out_trade_no: 'yzf_1017183444',
-      out_refund_no: '1121221',
+      transaction_id: '4200000438201912143497771095',
+      out_trade_no: '1415757673',
+      out_refund_no: '1415701182',
+      nonce_str: '5K8264ILTKCH16CQ2502SI8ZNMTM67VS',
       total_fee: '1',
       refund_fee: '1'
     });
@@ -243,7 +245,7 @@ router.get('/web/refund.json', async function(req, res, next) {
     // });
     console.log(321212)
     res.send({
-      data: result,
+      data: 332,
       result: 'succeed',
       errorCode: 200,
       message: '2',
@@ -302,6 +304,5 @@ router.get('/web/refundQuery.json', async function(req, res, next) {
 function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;
 }
-
 
 module.exports = router;
