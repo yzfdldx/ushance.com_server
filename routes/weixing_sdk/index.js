@@ -119,6 +119,7 @@ const config = {
   mchid: '1558987061',
   partnerKey: 'lgyyzf1234lgyyzf1234lgyyzf123473',
   // pfx: require('fs').readFileSync('证书文件路径'),
+  pfx: fs.readFileSync('./public/ssl/weixin/apiclient_cert.p12', 'ascii'),
   notify_url: 'https://www.ushance.com/weixing_sdk/web/yanqian.json',
   // spbill_create_ip: 'IP地址'
 };
@@ -225,34 +226,34 @@ router.get('/web/refund.json', async function(req, res, next) {
   try {
     // const query = req.query;
     const query = req.body;
-    console.log(1111)
-    let result = await api.refund({
-      // transaction_id, out_trade_no 二选一
-      transaction_id: '4200000438201912143497771095',
-      out_trade_no: '1415757673',
-      out_refund_no: '1415701182',
-      nonce_str: '5K8264ILTKCH16CQ2502SI8ZNMTM67VS',
-      total_fee: '1',
-      refund_fee: '1'
-    });
-    // let result = await api.refund({
-    //   // transaction_id, out_trade_no 二选一
-    //   // transaction_id: '4200000438201912143497771095',
-    //   out_trade_no: 'yzf_1017183444',
-    //   out_refund_no: 'yzf_1017183444_1214',
-    //   total_fee: '1',
-    //   refund_fee: '1'
-    // });
-    console.log(321212)
-    res.send({
-      data: 332,
-      result: 'succeed',
-      errorCode: 200,
-      message: '2',
-    });
-    // if (checkFn(['id', 'price', 'name', 'describe'], query, res)) {
-      
-    // }
+    var WXPay = require('weixin-pay');
+    if (checkFn(['id', 'price'], query, res)) {
+      var wxpay = WXPay({
+          appid: 'wx31555a0999f1af84',
+          mch_id: '1558987061',
+          partner_key: 'lgyyzf1234lgyyzf1234lgyyzf123473', //微信商户平台API密钥
+          pfx: fs.readFileSync('./public/ssl/weixin/apiclient_cert.p12'), //微信商户平台证书
+      });
+      var params = {
+          appid: 'wx31555a0999f1af84',
+          mch_id: '1558987061',
+          op_user_id: '1558987061',
+          out_refund_no: '20140703'+Math.random().toString().substr(2, 10),
+          total_fee: query.price, //原支付金额
+          refund_fee: query.price, //退款金额
+          out_trade_no: query.id,
+          // transaction_id: '4200000450201912221764995896'
+      };
+      wxpay.refund(params, function(err, result){
+          console.log('refund', arguments);
+          res.send({
+            data: arguments[1],
+            result: 'succeed',
+            errorCode: 200,
+            message: '2',
+          });
+      });
+    }
   } catch (error) {
     res.send({
       result: 'error',

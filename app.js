@@ -14,6 +14,7 @@ var this_dev = dev;
 var index = require('./' + this_dev + '/index'); // pc首页
 // 接口配置文件
 var web_index = require('./' + this_dev + '/web_link/index'); // pc首页
+var web_accept = require('./' + this_dev + '/web_link/accept'); // accept
 // 支付宝支付
 var zfb_sdk = require('./' + this_dev + '/zfb_sdk/index');
 // 微信支付
@@ -76,6 +77,7 @@ app.use((req, res, next)=>{
 
 // 线上要部署的页面请求
 app.use('/web/index', web_index);
+app.use('/web/accept', web_accept);
 
 // 支付宝支付
 app.use('/zfb_sdk', zfb_sdk);
