@@ -62,6 +62,7 @@ const checkLink = (e, query) => {
       }
     });
   }
+  return str;
 }
 
 var host = {
@@ -84,10 +85,12 @@ router.get('/queryAll.json', async (req, res, next) => { // 查看除自己的�
     if (checkFn(['id'], query, res)) {
       var connection = mysql.createConnection(host);
       connection.connect();
-      var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `who_user_id != "${query.id}"`
+      // var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `"check" = 1`
+      var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `"check" = 1 and who_user_id != "${query.id}"`
       connection.query(select, function(err, rows, fields) {
         if (!err) {
           res.send({
+            select,
             data: rows,
             result: 'succeed',
             errorCode: 200,
@@ -124,6 +127,41 @@ router.get('/queryById.json', async (req, res, next) => { // 查看自己的
         if (!err) {
           res.send({
             data: rows,
+            result: 'succeed',
+            errorCode: 200,
+            message: '',
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: 200,
+            message: err,
+          });
+        }
+      });
+      connection.end();
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了',
+    });
+  }
+});
+
+router.get('/queryId.json', async (req, res, next) => { // 查看发单id
+  try {
+    // const query = req.body;
+    const query = req.query;
+    if (checkFn(['id'], query, res)) {
+      var connection = mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `id = "${query.id}"`
+      connection.query(select, function(err, rows, fields) {
+        if (!err) {
+          res.send({
+            data: rows ? rows[0] : null,
             result: 'succeed',
             errorCode: 200,
             message: '',
@@ -184,26 +222,33 @@ router.get('/query_accept.json', async (req, res, next) => { // 查看自己的
 });
 
 // 发布新单
-router.get('/add.json', async (req, res, next) => { // 查看自己的
+router.post('/add.json', async (req, res, next) => { // 查看自己的
   try {
-    // const query = req.body;
-    const query = req.query;
-    if (checkFn(['who_user_id', 'who_user_name', 'who_user_pay_type', 'test_need', 'test_price'], query, res)) {
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['name', 'who_user_id', 'who_user_name', 'who_user_pay_type', 'test_need', 'test_price'], query, res)) {
       var connection = mysql.createConnection(host);
       connection.connect();
       const time = DFormat();
       var select = `INSERT INTO my_web.other_order (` +
-        `who_user_id, who_user_name, who_user_grade, who_user_subject, who_user_pay_type, who_user_pay, who_user_pay_data,`+
+        `name, who_user_id, who_user_name, who_user_address, who_user_grade, who_user_subject, who_user_pay_type, who_user_pay, who_user_pay_data,`+
         ` test_time, test_gender, test_subject, test_need, test_price, CREATE_DATE` +
         `) VALUES ( ` +
-        `'${query.who_user_id ? query.who_user_id : ''}', ` +
-        `'${query.who_user_name ? query.who_user_name : ''}', '${query.who_user_grade ? query.who_user_grade : ''}', ` +
-        `'${query.who_user_subject ? query.who_user_subject : ''}', '${Item.who_user_pay_type ? Item.who_user_pay_type : ''}', ` +
-        `'${Item.who_user_pay ? Item.who_user_pay : ''}', '${Item.who_user_pay_data ? Item.who_user_pay_data : ''}', ` +
+        `'${query.name ? query.name : ''}', ` +
+        `'${query.who_user_id ? query.who_user_id : ''}', '${query.who_user_name ? query.who_user_name : ''}',` +
+        `'${query.who_user_address ? query.who_user_address : ''}', '${query.who_user_grade ? query.who_user_grade : ''}', ` +
+        `'${query.who_user_subject ? query.who_user_subject : ''}', '${query.who_user_pay_type ? query.who_user_pay_type : ''}', ` +
+        `'${query.who_user_pay ? query.who_user_pay : ''}', '${query.who_user_pay_data ? query.who_user_pay_data : ''}', ` +
         `'${query.test_time ? query.test_time : ''}', '${query.test_gender ? query.test_gender : ''}', ` +
         `'${query.test_subject ? query.test_subject : ''}', '${query.test_need ? query.test_need : ''}', ` +
         `'${query.test_price ? query.test_price : 0}', ` +
         `'${time}')`;
+        // res.send({
+        //   data: select,
+        //   result: 'succeed',
+        //   errorCode: 200,
+        //   message: '',
+        // });
       connection.query(select, function(err, rows, fields) {
         if (!err) {
           res.send({
@@ -232,14 +277,16 @@ router.get('/add.json', async (req, res, next) => { // 查看自己的
 });
 
 // 编辑单子
-router.get('/edit.json', async (req, res, next) => { // 查看自己的
+router.post('/edit.json', async (req, res, next) => { // 查看自己的
   try {
-    // const query = req.body;
-    const query = req.query;
+    const query = req.body;
+    // const query = req.query;
     if (checkFn(['id'], query, res)) {
       var connection = mysql.createConnection(host);
       connection.connect();
       var Arr = [
+        'name',
+        'who_user_address',
         'who_user_grade',
         'who_user_subject',
         'who_user_pay_type',
@@ -252,12 +299,15 @@ router.get('/edit.json', async (req, res, next) => { // 查看自己的
         'test_price',
         'accept_id',
         'accept_name',
-        'accept_money'
+        'accept_money',
+        'accept_address',
+        'disable',
+        'check'
       ]
       let str = checkLink(Arr, query);
       var select = `update my_web.other_order set ` +
       str +
-      ` where id = ${query.ID}`;
+      ` where id = ${query.id}`;
       connection.query(select, function(err, rows, fields) {
         if (!err) {
           res.send({
