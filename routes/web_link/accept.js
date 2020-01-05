@@ -85,8 +85,8 @@ router.get('/queryAll.json', async (req, res, next) => { // 查看除自己的�
     if (checkFn(['id'], query, res)) {
       var connection = mysql.createConnection(host);
       connection.connect();
-      // var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `"check" = 1`
-      var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `"check" = 1 and who_user_id != "${query.id}"`
+      // var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `check_type = 1`
+      var select = 'select ' + '*' + ' from ' + 'my_web.other_order' + ' where ' + `check_type = 1 and who_user_id != "${query.id}" and accept_id is null`
       connection.query(select, function(err, rows, fields) {
         if (!err) {
           res.send({
