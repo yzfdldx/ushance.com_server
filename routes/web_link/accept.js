@@ -226,13 +226,13 @@ router.post('/add.json', async (req, res, next) => { // 查看自己的
   try {
     const query = req.body;
     // const query = req.query;
-    if (checkFn(['name', 'who_user_id', 'who_user_name', 'who_user_pay_type', 'test_need', 'test_price'], query, res)) {
+    if (checkFn(['name', 'who_user_id', 'who_user_name', 'who_user_pay_type', 'test_need', 'test_price', 'type'], query, res)) {
       var connection = mysql.createConnection(host);
       connection.connect();
       const time = DFormat();
       var select = `INSERT INTO my_web.other_order (` +
         `name, who_user_id, who_user_name, who_user_address, who_user_grade, who_user_subject, who_user_pay_type, who_user_pay, who_user_pay_data,`+
-        ` test_time, test_gender, test_subject, test_need, test_price, CREATE_DATE` +
+        ` test_time, test_gender, test_subject, test_need, test_price, CREATE_DATE, type` +
         `) VALUES ( ` +
         `'${query.name ? query.name : ''}', ` +
         `'${query.who_user_id ? query.who_user_id : ''}', '${query.who_user_name ? query.who_user_name : ''}',` +
@@ -242,7 +242,7 @@ router.post('/add.json', async (req, res, next) => { // 查看自己的
         `'${query.test_time ? query.test_time : ''}', '${query.test_gender ? query.test_gender : ''}', ` +
         `'${query.test_subject ? query.test_subject : ''}', '${query.test_need ? query.test_need : ''}', ` +
         `'${query.test_price ? query.test_price : 0}', ` +
-        `'${time}')`;
+        `'${time}', '${query.type ? query.type : ''}')`;
         // res.send({
         //   data: select,
         //   result: 'succeed',
@@ -302,7 +302,7 @@ router.post('/edit.json', async (req, res, next) => { // 查看自己的
         'accept_money',
         'accept_address',
         'disable',
-        'check'
+        'check_type'
       ]
       let str = checkLink(Arr, query);
       var select = `update my_web.other_order set ` +

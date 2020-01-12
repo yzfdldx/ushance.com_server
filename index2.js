@@ -19,7 +19,7 @@ var fs = require('fs');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '80');
+var port = normalizePort(process.env.PORT || '8000');
 app.set('port', port);
 
 var server = http.createServer(app);
