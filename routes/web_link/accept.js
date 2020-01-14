@@ -77,6 +77,36 @@ function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;
 }
 
+/*
+// 创建一个连接
+var connection = Mysql.createConnection(host);
+connection.connect();
+var select = ''
+connection.query(select, function(err, result, fields) {
+  if (!err) {
+    
+  } else {
+    res.send({
+      result: 'error',
+      errorCode: err,
+      message: '用户名或者密码错误',
+    });
+  }
+});
+connection.end();
+
+// 创建一个连接池
+var pool = mysql.createPool(host);
+pool.getConnection((err, connecting) => {
+  var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${query.phone}"`
+  connecting.query(select, (err, result) => {
+    if (!err && result) {
+
+    }
+  })
+})
+*/
+
 // 查看发单
 router.get('/queryAll.json', async (req, res, next) => { // 查看除自己的全部
   try {

@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const City = require('./city.js');
+const Mysql = require('mysql');
 const DFormat = (value) => { // 日期Filter
   const Str = value;
   const ZeorFn = (a) => {
@@ -51,42 +52,6 @@ const checkFn = (e, query, res) => {
   }
   return false
 }
-
-
-router.get('/my/test.json', function(req, res, next) { // 查看详情
-  try {
-    const mysql = require('mysql');
-    // const query = req.query;
-    const query = req.body;
-    var pool = mysql.createPool({
-      host: '39.100.225.94', // 149.129.177.101
-      port: 3306,
-      database: 'my_web', // 数据库
-      user: 'yzflhez',
-      password: 'Yzf-1234',
-    });
-    pool.getConnection((err, connecting) => {
-      if (err) {
-        res.send({
-          result: 'error',
-          errorCode: err,
-          message: '数据库连接失败',
-        });
-      } else { // 链接成功
-        res.send({
-          result: 'succeed',
-          data: 'ok',
-        });
-      }
-    });
-  } catch (error) {
-    res.send({
-      result: 'error',
-      errorCode: error,
-      message: '未知错误',
-    });
-  }
-});
 // var host = {
 //   host: '149.129.177.101',
 //   port: 3306,
@@ -160,51 +125,42 @@ router.post('/my/message.json', async (req, res, next) => {
   }
 });
 // 登录
-router.post('/my/load.json', function(req, res, next) { // 登录
+router.post('/my/load.json', function(req, res, next) { // 登录 - ok
   try {
-    const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['name', 'password'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_NAME = "${query.name}" and USE_PASSWORD = "${query.password}"`
+      connection.query(select, function(err, result, fields) {
+        if (!err && result[0]) {
+          const Item = result[0];
+          const address = Item.address;
+          if (address && typeof(address) === 'string') {
+            try {
+              Item.address =JSON.parse(address);
+            } catch (error) {
+              // 
+            }
+          }
+          delete Item.USE_PASSWORD;
+          if (Item.money_cart) {
+            Item.money_cart = JSON.parse(Item.money_cart);
+          }
+          res.send({
+            result: 'succeed',
+            data: [Item],
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_NAME = "${query.name}" and USE_PASSWORD = "${query.password}"`
-          connecting.query(select, (err, result) => {
-            if (!err && result[0]) {
-              const Item = result[0];
-              const address = Item.address;
-              if (address && typeof(address) === 'string') {
-                try {
-                  Item.address =JSON.parse(address);
-                } catch (error) {
-                  // 
-                }
-              }
-              delete Item.USE_PASSWORD;
-              if (Item.money_cart) {
-                Item.money_cart = JSON.parse(Item.money_cart);
-              }
-              res.send({
-                result: 'succeed',
-                data: [Item],
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '用户名或者密码错误',
-              });
-            }
+            message: '用户名或者密码错误',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -214,52 +170,43 @@ router.post('/my/load.json', function(req, res, next) { // 登录
     });
   }
 });
-router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
+router.post('/my/phoneLoad.json', function(req, res, next) { // 登录 - test
   try {
     const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['phone', 'check'], query, res)) {
       if (`${query.check}` === `${messageCode[query.phone]}`) {
-        var pool = mysql.createPool(host);
-        pool.getConnection((err, connecting) => {
-          if (err) {
+        connection.connect();
+        var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${query.phone}"`
+        connection.query(select, function(err, result, fields) {
+          if (!err && result[0]) {
+            const Item = result[0];
+            const address = Item.address;
+            if (address && typeof(address) === 'string') {
+              try {
+                Item.address =JSON.parse(address);
+              } catch (error) {
+                // 
+              }
+            }
+            delete Item.USE_PASSWORD;
+            if (Item.money_cart) {
+              Item.money_cart = JSON.parse(Item.money_cart);
+            }
+            res.send({
+              result: 'succeed',
+              data: [Item],
+            });
+          } else {
             res.send({
               result: 'error',
-              errorCode: err,
-              message: '数据库连接失败',
-            });
-          } else { // 链接成功
-            var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${query.phone}"`
-            connecting.query(select, (err, result) => {
-              if (!err && result[0]) {
-                const Item = result[0];
-                const address = Item.address;
-                if (address && typeof(address) === 'string') {
-                  try {
-                    Item.address =JSON.parse(address);
-                  } catch (error) {
-                    // 
-                  }
-                }
-                delete Item.USE_PASSWORD;
-                if (Item.money_cart) {
-                  Item.money_cart = JSON.parse(Item.money_cart);
-                }
-                res.send({
-                  result: 'succeed',
-                  data: [Item],
-                });
-              } else {
-                res.send({
-                  result: 'error',
-                  errorCode: 200,
-                  message: '该电话用户不存在',
-                });
-              }
+              errorCode: 200,
+              message: '该电话用户不存在',
             });
           }
         });
+        connection.end();
       } else {
         res.send({
           result: 'error',
@@ -276,51 +223,42 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录
     });
   }
 });
-router.post('/my/detail.json', function(req, res, next) { // 查看详情
+router.post('/my/detail.json', function(req, res, next) { // 查看详情 - ok
   try {
-    const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = "${query.id}"`
+      connection.query(select, function(err, result, fields) {
+        if (!err && result[0]) {
+          const Item = result[0];
+          const address = Item.address;
+          if (address && typeof(address) === 'string') {
+            try {
+              Item.address = JSON.parse(address);
+            } catch (error) {
+              // 
+            }
+          }
+          if (Item.money_cart) {
+            Item.money_cart = JSON.parse(Item.money_cart);
+          }
+          delete Item.USE_PASSWORD;
+          res.send({
+            result: 'succeed',
+            data: Item,
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = "${query.id}"`
-          connecting.query(select, (err, result) => {
-            if (!err && result[0]) {
-              const Item = result[0];
-              const address = Item.address;
-              if (address && typeof(address) === 'string') {
-                try {
-                  Item.address = JSON.parse(address);
-                } catch (error) {
-                  // 
-                }
-              }
-              if (Item.money_cart) {
-                Item.money_cart = JSON.parse(Item.money_cart);
-              }
-              delete Item.USE_PASSWORD;
-              res.send({
-                result: 'succeed',
-                data: Item,
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '不存在该用户',
-              });
-            }
+            message: '不存在该用户',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
