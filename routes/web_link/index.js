@@ -172,11 +172,11 @@ router.post('/my/load.json', function(req, res, next) { // 登录 - ok
 });
 router.post('/my/phoneLoad.json', function(req, res, next) { // 登录 - test
   try {
-    const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['phone', 'check'], query, res)) {
       if (`${query.check}` === `${messageCode[query.phone]}`) {
+        var connection = Mysql.createConnection(host);
         connection.connect();
         var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${query.phone}"`
         connection.query(select, function(err, result, fields) {
