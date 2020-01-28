@@ -70,8 +70,70 @@ var host = {
 function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;
 }
-let messageCode = {};
+// 安全码
+let adminCode = {};
+router.post('/my/adminCode.json', async (req, res, next) => {
+  try {
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['id'], query, res)) {
+      const Code = rand(111111, 999999);
+      const now_code = `${query.id}_${Code}`;
+      messageCode[query.id] = now_code;
+      setTimeout(() => {
+        delete adminCode[query.id];
+      }, 3000)
+      res.send({
+        data: now_code,
+        result: 'succeed',
+        errorCode: 200,
+        message: '',
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了',
+    });
+  }
+});
+
+router.post('/my/check_adminCode.json', async (req, res, next) => {
+  try {
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['id', 'check'], query, res)) {
+      const Code = rand(111111, 999999);
+      const now_code = `${query.id}_${Code}`;
+      messageCode[query.id] = now_code;
+
+      if (`${query.check}` === `${adminCode[query.id]}`) {
+        delete adminCode[query.id];
+        res.send({
+          result: 'succeed',
+          errorCode: 200,
+          message: '',
+        });
+      } else {
+        res.send({
+          result: 'error',
+          errorCode: 200,
+          message: '验证未通过',
+        });
+      }
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 'err',
+      message: '代码出错了',
+    });
+  }
+});
+
 // 短信验证
+let messageCode = {};
 router.post('/my/message.json', async (req, res, next) => {
   try {
     const query = req.body;
@@ -170,12 +232,13 @@ router.post('/my/load.json', function(req, res, next) { // 登录 - ok
     });
   }
 });
-router.post('/my/phoneLoad.json', function(req, res, next) { // 登录 - test
+router.post('/my/phoneLoad.json', function(req, res, next) { // 登录 - ok
   try {
     // const query = req.query;
     const query = req.body;
     if (checkFn(['phone', 'check'], query, res)) {
       if (`${query.check}` === `${messageCode[query.phone]}`) {
+        delete messageCode[query.phone];
         var connection = Mysql.createConnection(host);
         connection.connect();
         var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${query.phone}"`
@@ -219,6 +282,51 @@ router.post('/my/phoneLoad.json', function(req, res, next) { // 登录 - test
     res.send({
       result: 'error',
       errorCode: 403,
+      message: '未知错误',
+    });
+  }
+});
+router.post('/my/weixin_load.json', function(req, res, next) { // 登录 - ok
+  try {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['name', 'password'], query, res)) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_NAME = "${query.name}" and USE_PASSWORD = "${query.password}"`
+      connection.query(select, function(err, result, fields) {
+        if (!err && result[0]) {
+          const Item = result[0];
+          const address = Item.address;
+          if (address && typeof(address) === 'string') {
+            try {
+              Item.address =JSON.parse(address);
+            } catch (error) {
+              // 
+            }
+          }
+          delete Item.USE_PASSWORD;
+          if (Item.money_cart) {
+            Item.money_cart = JSON.parse(Item.money_cart);
+          }
+          res.send({
+            result: 'succeed',
+            data: [Item],
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '用户名或者密码错误',
+          });
+        }
+      });
+      connection.end();
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
       message: '未知错误',
     });
   }
@@ -269,51 +377,46 @@ router.post('/my/detail.json', function(req, res, next) { // 查看详情 - ok
   }
 });
 // 注册
-router.post('/my/register.json', function(req, res, next) { // 注册
+router.post('/my/register.json', function(req, res, next) { // 注册 - test
   try {
     const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['name', 'Email', 'password', 'phone', 'check'], query, res)) {
       if (`${query.check}` === `${messageCode[query.phone]}`) {
-        var pool = mysql.createPool(host);
-        pool.getConnection((err, connecting) => {
-          if (err) {
-            res.send({
-              result: 'error',
-              errorCode: err,
-              message: '数据库连接失败',
-            });
-          } else { // 链接成功
-            var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_NAME = "${query.name}" or USE_EMAIL = "${query.Email}" or phone = "${query.phone}"`
-            connecting.query(select,(err, result) => {
-              const time = DFormat();
-              if (!err && !result[0]) {
-                var select2 = `INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_ODER, CREATE_DATE, phone) VALUES ( '${query.name}', '${query.password}', '${query.Email}', '1', '${time}', '${query.phone}')`
-                connecting.query(select2,(err, result) => {
-                  if (!err) {
-                    res.send({
-                      result: 'succeed',
-                      data: result,
-                    });
-                  } else {
-                    res.send({
-                      result: 'error',
-                      errorCode: err,
-                      message: '注册失败',
-                    });
-                  }
+        var connection = Mysql.createConnection(host);
+        connection.connect();
+        var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_NAME = "${query.name}" or USE_EMAIL = "${query.Email}" or phone = "${query.phone}"`
+        connection.query(select,(err, result) => {
+          const time = DFormat();
+          if (!err && !result[0]) {
+            var select2 = `INSERT INTO my_web.USE (USE_NAME, USE_PASSWORD, USE_EMAIL, USE_ODER, CREATE_DATE, phone) VALUES ( '${query.name}', '${query.password}', '${query.Email}', '1', '${time}', '${query.phone}')`
+            var connection2 = Mysql.createConnection(host);
+            connection2.connect();
+            connection2.query(select2,(err, result) => {
+              if (!err) {
+                res.send({
+                  result: 'succeed',
+                  data: result,
                 });
               } else {
                 res.send({
                   result: 'error',
-                  errorCode: 200,
-                  message: '用户名、邮箱或者电话已经存在',
+                  errorCode: err,
+                  message: '注册失败',
                 });
               }
             });
+            connection2.end();
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: 200,
+              message: '用户名、邮箱或者电话已经存在',
+            });
           }
         });
+        connection.end();
       } else {
         res.send({
           result: 'error',
@@ -331,111 +434,100 @@ router.post('/my/register.json', function(req, res, next) { // 注册
   }
 });
 
-router.post('/my/editAddress.json', function(req, res, next) { // 新增地址
+router.post('/my/editAddress.json', function(req, res, next) { // 新增地址 - test
   try {
-    const mysql = require('mysql');
+    // const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
-    var pool = mysql.createPool(host);
+    // var pool = mysql.createPool(host);
     if (checkFn(['id', 'address'], query, res)) {
-      // let address = query.address ? query.address : '';
-      // if (typeof(address) === 'object') {
-      //   address = JSON.stringify(address);
-      // }
-      pool.getConnection((err, connecting) => {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          const time = DFormat();
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
-          connecting.query(select2,(err, result) => {
-            if (!err) {
-              if (!result || !result.length) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      const time = DFormat();
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          if (!result || !result.length) {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '修改失败, 没查询到有该用户',
+            });
+          } else {
+            const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
+            const Arr = [];
+            const Address = JSON.parse(query.address);
+            if (query.key || query.key === 0) { // 编辑
+              address.forEach((e, k) => {
+                if (`${k}` === `${query.key}`) {
+                  if (Address.default) {
+                    Arr.unshift({
+                      ...Address,
+                    })
+                  } else {
+                    Arr.push({
+                      ...Address,
+                    })
+                  }
+                } else if (Address.default) {
+                  Arr.push({
+                    ...e,
+                    default: undefined,
+                  })
+                } else {
+                  Arr.push({
+                    ...e,
+                  })
+                }
+              });
+            } else { // 新建一个地址
+              address.forEach(e => {
+                if (Address.default) {
+                  Arr.push({
+                    ...e,
+                    default: undefined,
+                  })
+                } else {
+                  Arr.push({
+                    ...e,
+                  })
+                }
+              });
+              if (Address.default) {
+                Arr.unshift(Address);
+              } else {
+                Arr.push(Address);
+              }
+            }
+            var select = `update my_web.USE set ` +
+            `address = '${JSON.stringify(Arr)}'` +
+            ` where USE_ID = ${query.id}`;
+            connecting.query(select,(err, result) => {
+              if (!err) {
+                res.send({
+                  result: 'succeed',
+                  data: result,
+                  errorCode: 200,
+                  message: '地址修改成功',
+                });
+              } else {
                 res.send({
                   result: 'error',
                   errorCode: err,
-                  message: '修改失败, 没查询到有该用户',
-                });
-              } else {
-                const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
-                const Arr = [];
-                const Address = JSON.parse(query.address);
-                if (query.key || query.key === 0) { // 编辑
-                  address.forEach((e, k) => {
-                    if (`${k}` === `${query.key}`) {
-                      if (Address.default) {
-                        Arr.unshift({
-                          ...Address,
-                        })
-                      } else {
-                        Arr.push({
-                          ...Address,
-                        })
-                      }
-                    } else if (Address.default) {
-                      Arr.push({
-                        ...e,
-                        default: undefined,
-                      })
-                    } else {
-                      Arr.push({
-                        ...e,
-                      })
-                    }
-                  });
-                } else { // 新建一个地址
-                  address.forEach(e => {
-                    if (Address.default) {
-                      Arr.push({
-                        ...e,
-                        default: undefined,
-                      })
-                    } else {
-                      Arr.push({
-                        ...e,
-                      })
-                    }
-                  });
-                  if (Address.default) {
-                    Arr.unshift(Address);
-                  } else {
-                    Arr.push(Address);
-                  }
-                }
-                var select = `update my_web.USE set ` +
-                `address = '${JSON.stringify(Arr)}'` +
-                ` where USE_ID = ${query.id}`;
-                connecting.query(select,(err, result) => {
-                  if (!err) {
-                    res.send({
-                      result: 'succeed',
-                      data: result,
-                      errorCode: 200,
-                      message: '地址修改成功',
-                    });
-                  } else {
-                    res.send({
-                      result: 'error',
-                      errorCode: err,
-                      message: '地址修改失败',
-                    });
-                  }
+                  message: '地址修改失败',
                 });
               }
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            });
+          }
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -446,39 +538,31 @@ router.post('/my/editAddress.json', function(req, res, next) { // 新增地址
   }
 });
 
-router.get('/my/getAddress.json', function(req, res, next) { // 地址
+router.get('/my/getAddress.json', function(req, res, next) { // 地址 - test
   try {
     const mysql = require('mysql');
     const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + 'address' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result[0] && result[0].address ? JSON.parse(result[0].address) : null,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + 'address' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result[0] && result[0].address ? JSON.parse(result[0].address) : null,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -489,64 +573,59 @@ router.get('/my/getAddress.json', function(req, res, next) { // 地址
   }
 });
 
-router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
+router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址 - test
   try {
     const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['id', 'key'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          const time = DFormat();
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
-          connecting.query(select2,(err, result) => {
-            if (!err) {
-              if (!result || !result.length) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      const time = DFormat();
+      var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+      connection.query(select2, function(err, result, fields) {
+        if (!err) {
+          if (!result || !result.length) {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '删除失败, 没查询到有该用户',
+            });
+          } else {
+            const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
+            address.splice(query.key, 1);
+            var select = `update my_web.USE set ` +
+            `address = '${JSON.stringify(address)}'` +
+            ` where USE_ID = ${query.id}`;
+            var connection2 = Mysql.createConnection(host);
+            connection2.connect();
+            connection2.query(select,(err, result) => {
+              if (!err) {
+                res.send({
+                  result: 'succeed',
+                  data: result,
+                  errorCode: 200,
+                  message: '地址删除成功',
+                });
+              } else {
                 res.send({
                   result: 'error',
                   errorCode: err,
-                  message: '删除失败, 没查询到有该用户',
-                });
-              } else {
-                const address = result[0] && result[0].address ? JSON.parse(result[0].address) : [];
-                address.splice(query.key, 1);
-                var select = `update my_web.USE set ` +
-                `address = '${JSON.stringify(address)}'` +
-                ` where USE_ID = ${query.id}`;
-                connecting.query(select,(err, result) => {
-                  if (!err) {
-                    res.send({
-                      result: 'succeed',
-                      data: result,
-                      errorCode: 200,
-                      message: '地址删除成功',
-                    });
-                  } else {
-                    res.send({
-                      result: 'error',
-                      errorCode: err,
-                      message: '地址删除失败',
-                    });
-                  }
+                  message: '地址删除失败',
                 });
               }
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            });
+            connection2.end();
+          }
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -558,158 +637,63 @@ router.post('/my/deleteAddress.json', function(req, res, next) { // 删除地址
 });
 
 // 用户交流
-router.post('/my/editMessage.json', function(req, res, next) { // 发送消息
+router.post('/my/editMessage.json', function(req, res, next) { // 发送消息 - test
   try {
-    const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
-    var pool = mysql.createPool(host);
     if (checkFn(['id', 'message'], query, res)) {
-      // let address = query.address ? query.address : '';
-      // if (typeof(address) === 'object') {
-      //   address = JSON.stringify(address);
-      // }
-      pool.getConnection((err, connecting) => {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          const time = DFormat();
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
-          connecting.query(select2,(err, result) => {
-            if (!err) {
-              if (!result || !result.length) {
-                res.send({
-                  result: 'error',
-                  errorCode: err,
-                  message: '修改失败, 没查询到有该用户',
-                });
-              } else {
-                const address = result[0] && result[0].message ? JSON.parse(result[0].message) : [];
-                const Address = query.message;
-                address.push({
-                  type: query.type ? query.type : 'Q',
-                  time: time,
-                  title: Address,
-                })
-                var select = `update my_web.USE set ` +
-                `message = '${JSON.stringify(address)}'` +
-                ` where USE_ID = ${query.id}`;
-                connecting.query(select,(err, result) => {
-                  if (!err) {
-                    res.send({
-                      result: 'succeed',
-                      data: result,
-                      errorCode: 200,
-                      message: '发送成功',
-                    });
-                  } else {
-                    res.send({
-                      result: 'error',
-                      errorCode: err,
-                      message: '发送失败',
-                    });
-                  }
-                });
-              }
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
-          });
-        }
-      });
-    }
-  } catch (error) {
-    res.send({
-      result: 'error',
-      errorCode: error,
-      message: '未知错误',
-    });
-  }
-});
-
-router.get('/my/getMessage.json', function(req, res, next) { // 获取消息列表
-  try {
-    const mysql = require('mysql');
-    const query = req.query;
-    if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + 'message' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result[0] && result[0].message ? JSON.parse(result[0].message) : null,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
-          });
-        }
-      });
-    }
-  } catch (error) {
-    res.send({
-      result: 'error',
-      errorCode: error,
-      message: '未知错误',
-    });
-  }
-});
-
-router.post('/my/getUserLIst.json', function(req, res, next) { // 获取用户列表
-  try {
-    const mysql = require('mysql');
-    // const query = req.query;
-    var pool = mysql.createPool(host);
-    pool.getConnection((err, connecting) => {
-      if (err) {
-        res.send({
-          result: 'error',
-          errorCode: err,
-          message: '数据库连接失败',
-        });
-      } else { // 链接成功
-        var select = 'select ' + 'USE_ID, USE_NAME' + ' from ' + 'my_web.USE'
-        connecting.query(select,(err, result) => {
-          if (!err) {
-            res.send({
-              result: 'succeed',
-              data: result.filter(e => e.USE_ID !== 1),
-              errorCode: 200,
-              message: '查询成功',
-            });
-          } else {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          if (!result || !result.length) {
             res.send({
               result: 'error',
               errorCode: err,
-              message: '查询失败',
+              message: '修改失败, 没查询到有该用户',
             });
+          } else {
+            const address = result[0] && result[0].message ? JSON.parse(result[0].message) : [];
+            const Address = query.message;
+            address.push({
+              type: query.type ? query.type : 'Q',
+              time: time,
+              title: Address,
+            })
+            var select2 = `update my_web.USE set ` +
+            `message = '${JSON.stringify(address)}'` +
+            ` where USE_ID = ${query.id}`;
+            var connection2 = Mysql.createConnection(host);
+            connection2.connect();
+            connecting2.query(select2,(err, result) => {
+              if (!err) {
+                res.send({
+                  result: 'succeed',
+                  data: result,
+                  errorCode: 200,
+                  message: '发送成功',
+                });
+              } else {
+                res.send({
+                  result: 'error',
+                  errorCode: err,
+                  message: '发送失败',
+                });
+              }
+            });
+            connection2.end();
           }
-        });
-      }
-    });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '查询失败',
+          });
+        }
+      });
+      connection.end();
+    }
   } catch (error) {
     res.send({
       result: 'error',
@@ -719,42 +703,99 @@ router.post('/my/getUserLIst.json', function(req, res, next) { // 获取用户�
   }
 });
 
-router.post('/my/deleteMessage.json', function(req, res, next) { // 删除消息
+router.get('/my/getMessage.json', function(req, res, next) { // 获取消息列表 - test
   try {
-    const mysql = require('mysql');
-    // const query = req.query;
-    const query = req.body;
+    const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + 'message' + ' from ' + 'my_web.USE' + ' where ' + `USE_ID = ${query.id}`
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result[0] && result[0].message ? JSON.parse(result[0].message) : null,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = `update my_web.USE set ` +
-          `message = '[]'` +
-          ` where USE_ID = ${query.id}`;
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result,
-                errorCode: 200,
-                message: '删除成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '删除失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/getUserLIst.json', function(req, res, next) { // 获取用户列表 - test
+  try {
+    // const query = req.query;
+    var connection = Mysql.createConnection(host);
+    connection.connect();
+    var select = 'select ' + 'USE_ID, USE_NAME' + ' from ' + 'my_web.USE'
+    connection.query(select, function(err, result, fields) {
+      if (!err) {
+        res.send({
+          result: 'succeed',
+          data: result.filter(e => e.USE_ID !== 1),
+          errorCode: 200,
+          message: '查询成功',
+        });
+      } else {
+        res.send({
+          result: 'error',
+          errorCode: err,
+          message: '查询失败',
+        });
+      }
+    });
+    connection.end();
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
+router.post('/my/deleteMessage.json', function(req, res, next) { // 删除消息 - test
+  try {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = `update my_web.USE set ` +
+          `message = '[]'` +
+          ` where USE_ID = ${query.id}`;
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '删除成功',
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '删除失败',
+          });
+        }
+      });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -817,76 +858,67 @@ router.post('/my/messageCall.json', async (req, res, next) => { // 用户交流�
 });
 
 // 编辑用户
-router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
+router.post('/my/editUser.json', function(req, res, next) { // 编辑单子 - test
   try {
-    const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['ID'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      let str = '';
+      if (query.USE_EMAIL) {
+        str += str ? `, USE_EMAIL = '${query.USE_EMAIL}'` : `USE_EMAIL = '${query.USE_EMAIL}'`
+      }
+      if (query.USE_MESSAGE) {
+        str += str ? `, USE_MESSAGE = ${query.USE_MESSAGE}` : `USE_MESSAGE = ${query.USE_MESSAGE}`
+      }
+      if (query.money) {
+        str += str ? `, money = '${query.money}'` : `money = '${query.money}'`
+      }
+      if (query.pre_money) {
+        str += str ? `, pre_money = '${query.pre_money}'` : `pre_money = '${query.pre_money}'`
+      }
+      if (query.bill_money) {
+        str += str ? `, bill_money = '${query.bill_money}'` : `bill_money = '${query.bill_money}'`
+      }
+      if (query.money_cart) {
+        str += str ? `, money_cart = '${query.money_cart}'` : `money_cart = '${query.money_cart}'`
+      }
+      if (query.refund_money) {
+        str += str ? `, refund_money = '${query.refund_money}'` : `refund_money = '${query.refund_money}'`
+      }
+      if (query.refund_type) {
+        str += str ? `, refund_type = '${query.refund_type}'` : `refund_type = '${query.refund_type}'`
+      }
+      if (query.refund_cardId) {
+        str += str ? `, refund_cardId = '${query.refund_cardId}'` : `refund_cardId = '${query.refund_cardId}'`
+      }
+      if (query.bill_money_type) {
+        str += str ? `, bill_money_type = '${query.bill_money_type}'` : `bill_money_type = '${query.bill_money_type}'`
+      }
+      if (query.bill_money_data) {
+        str += str ? `, bill_money_data = '${query.bill_money_data}'` : `bill_money_data = '${query.bill_money_data}'`
+      }
+      var select = `update my_web.USE set ` +
+      str +
+      ` where USE_ID = ${query.ID}`;
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '编辑成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          let str = '';
-          if (query.USE_EMAIL) {
-            str += str ? `, USE_EMAIL = '${query.USE_EMAIL}'` : `USE_EMAIL = '${query.USE_EMAIL}'`
-          }
-          if (query.USE_MESSAGE) {
-            str += str ? `, USE_MESSAGE = ${query.USE_MESSAGE}` : `USE_MESSAGE = ${query.USE_MESSAGE}`
-          }
-          if (query.money) {
-            str += str ? `, money = '${query.money}'` : `money = '${query.money}'`
-          }
-          if (query.pre_money) {
-            str += str ? `, pre_money = '${query.pre_money}'` : `pre_money = '${query.pre_money}'`
-          }
-          if (query.bill_money) {
-            str += str ? `, bill_money = '${query.bill_money}'` : `bill_money = '${query.bill_money}'`
-          }
-          if (query.money_cart) {
-            str += str ? `, money_cart = '${query.money_cart}'` : `money_cart = '${query.money_cart}'`
-          }
-          if (query.refund_money) {
-            str += str ? `, refund_money = '${query.refund_money}'` : `refund_money = '${query.refund_money}'`
-          }
-          if (query.refund_type) {
-            str += str ? `, refund_type = '${query.refund_type}'` : `refund_type = '${query.refund_type}'`
-          }
-          if (query.refund_cardId) {
-            str += str ? `, refund_cardId = '${query.refund_cardId}'` : `refund_cardId = '${query.refund_cardId}'`
-          }
-          if (query.bill_money_type) {
-            str += str ? `, bill_money_type = '${query.bill_money_type}'` : `bill_money_type = '${query.bill_money_type}'`
-          }
-          if (query.bill_money_data) {
-            str += str ? `, bill_money_data = '${query.bill_money_data}'` : `bill_money_data = '${query.bill_money_data}'`
-          }
-          var select = `update my_web.USE set ` +
-          str +
-          ` where USE_ID = ${query.ID}`;
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result,
-                errorCode: 200,
-                message: '编辑成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '编辑失败',
-              });
-            }
+            message: '编辑失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -899,64 +931,55 @@ router.post('/my/editUser.json', function(req, res, next) { // 编辑单子
 
 // 我的 *********************************
 // 订单处理 ***********************************
-router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部订单
+router.get('/my/order/getOrder.json', function(req, res, next) { // 查询全部订单 - test
   try {
-    const mysql = require('mysql');
     const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
+      if (`${query.id}` === '1') {
+        var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1` + ' order by id desc'
+      }
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          let Arr = [];
+          if (result) {
+            Arr = result.filter(e => !e.hidden).map(e => {
+              let payPrice = 0;
+              let payId = ''
+              try {
+                const pay = JSON.parse(e.payData);
+                // payPrice = parseFloat(pay.data.total_amount);
+                payPrice = e.payPrice ? parseFloat(e.payPrice) : 0;
+                payId = pay.id;
+              } catch (error) {
+                //
+              }
+              return {
+                ...e,
+                payData: undefined,
+                payPrice,
+                payId,
+                hidden: undefined
+              }
+            });
+          }
+          res.send({
+            result: 'succeed',
+            data: Arr,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and USE_ID = ${query.id}` + ' order by id desc'
-          if (`${query.id}` === '1') {
-            var select = 'select ' + '*' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1` + ' order by id desc'
-          }
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              let Arr = [];
-              if (result) {
-                Arr = result.filter(e => !e.hidden).map(e => {
-                  let payPrice = 0;
-                  let payId = ''
-                  try {
-                    const pay = JSON.parse(e.payData);
-                    // payPrice = parseFloat(pay.data.total_amount);
-                    payPrice = e.payPrice ? parseFloat(e.payPrice) : 0;
-                    payId = pay.id;
-                  } catch (error) {
-                    //
-                  }
-                  return {
-                    ...e,
-                    payData: undefined,
-                    payPrice,
-                    payId,
-                    hidden: undefined
-                  }
-                });
-              }
-              res.send({
-                result: 'succeed',
-                data: Arr,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -1028,39 +1051,30 @@ router.get('/my/order/getNowOrder.json', function(req, res, next) { // 查询现
   }
 });
 
-router.get('/my/order/getFinishOrder.json', function(req, res, next) { // 查询完成的订单
+router.get('/my/order/getFinishOrder.json', function(req, res, next) { // 查询完成的订单 - test
   try {
-    const mysql = require('mysql');
     const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state = 1 and order_type = 1 and USE_ID = ${query.id}`;
+      connection.query(select, function(err, result, fields) {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state = 1 and order_type = 1 and USE_ID = ${query.id}`
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -1071,38 +1085,29 @@ router.get('/my/order/getFinishOrder.json', function(req, res, next) { // 查询
   }
 });
 
-router.get('/my/order/getPublishOrder.json', function(req, res, next) { // 查询发单
+router.get('/my/order/getPublishOrder.json', function(req, res, next) { // 查询发单 - test
   try {
-    const mysql = require('mysql');
     const query = req.query;
-    var pool = mysql.createPool(host);
-    pool.getConnection((err, connecting) => {
-      if (err) {
+    var connection = Mysql.createConnection(host);
+    connection.connect();
+    var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 2 ${query.id ? ` and USE_ID = ${query.id}` : ''}`
+    connection.query(select,(err, result) => {
+      if (!err) {
+        res.send({
+          result: 'succeed',
+          data: result,
+          errorCode: 200,
+          message: '查询成功',
+        });
+      } else {
         res.send({
           result: 'error',
           errorCode: err,
-          message: '数据库连接失败',
-        });
-      } else { // 链接成功
-        var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 2 ${query.id ? ` and USE_ID = ${query.id}` : ''}`
-        connecting.query(select,(err, result) => {
-          if (!err) {
-            res.send({
-              result: 'succeed',
-              data: result,
-              errorCode: 200,
-              message: '查询成功',
-            });
-          } else {
-            res.send({
-              result: 'error',
-              errorCode: err,
-              message: '查询失败',
-            });
-          }
+          message: '查询失败',
         });
       }
     });
+    connection.end();
   } catch (error) {
     res.send({
       result: 'error',
@@ -1112,39 +1117,30 @@ router.get('/my/order/getPublishOrder.json', function(req, res, next) { // 查�
   }
 });
 
-router.get('/my/order/getAcceptOrder.json', function(req, res, next) { // 查询我的接单
+router.get('/my/order/getAcceptOrder.json', function(req, res, next) { // 查询我的接单 - test
   try {
-    const mysql = require('mysql');
     const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}`
+      connection.query(select,(err, result) => {
+        if (!err) {
+          res.send({
+            result: 'succeed',
+            data: result,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number' + ' from ' + 'my_web.order' + ' where ' + `state != 1 and order_type = 1 and USE_ID = ${query.id}`
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              res.send({
-                result: 'succeed',
-                data: result,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -1155,60 +1151,51 @@ router.get('/my/order/getAcceptOrder.json', function(req, res, next) { // 查询
   }
 });
 
-router.get('/my/order/getOrderDetail.json', function(req, res, next) { // 查询订单详情
+router.get('/my/order/getOrderDetail.json', function(req, res, next) { // 查询订单详情 - test
   try {
-    const mysql = require('mysql');
     const query = req.query;
     if (checkFn(['id'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and id = ${query.id}` + ' order by id desc';
+      connection.query(select,(err, result) => {
+        if (!err) {
+          let Arr = [];
+          if (result) {
+            Arr = result.filter(e => !e.hidden).map(e => {
+              let payPrice = 0;
+              let payId = ''
+              try {
+                const pay = JSON.parse(e.payData);
+                payPrice = parseFloat(pay.data.total_amount);
+                payId = pay.id;
+              } catch (error) {
+                //
+              }
+              return {
+                ...e,
+                payData: undefined,
+                payPrice,
+                payId,
+                hidden: undefined
+              }
+            });
+          }
+          res.send({
+            result: 'succeed',
+            data: Arr ? Arr[0] : null,
+            errorCode: 200,
+            message: '查询成功',
+          });
+        } else {
           res.send({
             result: 'error',
             errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          var select = 'select ' + 'id, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, message, payment, type, device_id, device_name, number, test_parameter, payData, state, hidden' + ' from ' + 'my_web.order' + ' where ' + `order_type = 1 and id = ${query.id}` + ' order by id desc';
-          connecting.query(select,(err, result) => {
-            if (!err) {
-              let Arr = [];
-              if (result) {
-                Arr = result.filter(e => !e.hidden).map(e => {
-                  let payPrice = 0;
-                  let payId = ''
-                  try {
-                    const pay = JSON.parse(e.payData);
-                    payPrice = parseFloat(pay.data.total_amount);
-                    payId = pay.id;
-                  } catch (error) {
-                    //
-                  }
-                  return {
-                    ...e,
-                    payData: undefined,
-                    payPrice,
-                    payId,
-                    hidden: undefined
-                  }
-                });
-              }
-              res.send({
-                result: 'succeed',
-                data: Arr ? Arr[0] : null,
-                errorCode: 200,
-                message: '查询成功',
-              });
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '查询失败',
-              });
-            }
+            message: '查询失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
@@ -1220,74 +1207,69 @@ router.get('/my/order/getOrderDetail.json', function(req, res, next) { // 查询
 });
 
 // 新增
-router.post('/my/order/addOrder.json', function(req, res, next) { // 新增订单
+router.post('/my/order/addOrder.json', function(req, res, next) { // 新增订单 - test
   try {
-    const mysql = require('mysql');
+    // const mysql = require('mysql');
     // const query = req.query;
     const query = req.body;
     if (checkFn(['ID', 'NAME', 'ADDRESS', 'GIVE_ID', 'payment', 'type', 'device_id', 'device_name', 'number', 'test_parameter', 'payPrice', 'pay_type'], query, res)) {
-      var pool = mysql.createPool(host);
-      pool.getConnection((err, connecting) => {
-        if (err) {
-          res.send({
-            result: 'error',
-            errorCode: err,
-            message: '数据库连接失败',
-          });
-        } else { // 链接成功
-          const time = DFormat();
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.device' + ' where ' + `id = ${query.device_id}`
-          connecting.query(select2,(err, result) => {
-            if (!err) {
-              if (!result || !result.length) {
+      var connection = Mysql.createConnection(host);
+      connection.connect();
+      const time = DFormat();
+      var select2 = 'select ' + '*' + ' from ' + 'my_web.device' + ' where ' + `id = ${query.device_id}`
+      connecting.query(select2,(err, result) => {
+        if (!err) {
+          if (!result || !result.length) {
+            res.send({
+              result: 'error',
+              errorCode: err,
+              message: '不存在该设备',
+            });
+          } else {
+            const Item = result[0];
+            var select = `INSERT INTO my_web.order (` +
+            `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number, payPrice, pay_type, payData` +
+            `) VALUES ( ` +
+            `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
+            `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
+            `'${query.ADDRESS ? query.ADDRESS : ''}', '${Item.USE_ID ? Item.USE_ID : ''}', ` +
+            `'${Item.USE_NAME ? Item.USE_NAME : ''}', '${Item.address ? Item.address : ''}', ` +
+            `'${time}', 0, ` +
+            `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
+            `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
+            `'${query.device_id ? query.device_id : 0}', '${query.device_name ? query.device_name : ''}', ` +
+            `1, '${query.number ? query.number : 0}',` +
+            `'${query.payPrice ? query.payPrice : 0}', '${query.pay_type ? query.pay_type : ''}',` +
+            `'${query.payData ? query.payData : "{}"}')`;
+            var connection2 = Mysql.createConnection(host);
+            connection2.connect();
+            connecting2.query(select,(err, result) => {
+              if (!err) {
+                res.send({
+                  result: 'succeed',
+                  data: result,
+                  errorCode: 200,
+                  message: '新增订单成功',
+                });
+              } else {
                 res.send({
                   result: 'error',
                   errorCode: err,
-                  message: '不存在该设备',
-                });
-              } else {
-                const Item = result[0];
-                var select = `INSERT INTO my_web.order (` +
-                `test_parameter, USE_ID, USE_NAME, USE_ADDRESS, GIVE_ID, GIVE_NAME, GIVE_ADDRESS, CREATE_DATE, state, process, message, payment, type, device_id, device_name, order_type, number, payPrice, pay_type, payData` +
-                `) VALUES ( ` +
-                `'${query.test_parameter ? query.test_parameter : "{}"}', ` +
-                `'${query.ID ? query.ID : ''}', '${query.NAME ? query.NAME : ''}', ` +
-                `'${query.ADDRESS ? query.ADDRESS : ''}', '${Item.USE_ID ? Item.USE_ID : ''}', ` +
-                `'${Item.USE_NAME ? Item.USE_NAME : ''}', '${Item.address ? Item.address : ''}', ` +
-                `'${time}', 0, ` +
-                `'${query.process ? query.process : ''}', '${query.message ? query.message : ''}', ` +
-                `'${query.payment ? query.payment : 0}', '${query.type ? query.type : 0}', ` +
-                `'${query.device_id ? query.device_id : 0}', '${query.device_name ? query.device_name : ''}', ` +
-                `1, '${query.number ? query.number : 0}',` +
-                `'${query.payPrice ? query.payPrice : 0}', '${query.pay_type ? query.pay_type : ''}',` +
-                `'${query.payData ? query.payData : "{}"}')`;
-                connecting.query(select,(err, result) => {
-                  if (!err) {
-                    res.send({
-                      result: 'succeed',
-                      data: result,
-                      errorCode: 200,
-                      message: '新增订单成功',
-                    });
-                  } else {
-                    res.send({
-                      result: 'error',
-                      errorCode: err,
-                      message: '新增订单失败',
-                    });
-                  }
+                  message: '新增订单失败',
                 });
               }
-            } else {
-              res.send({
-                result: 'error',
-                errorCode: err,
-                message: '新增订单失败',
-              });
-            }
+            });
+            connection2.end();
+          }
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: err,
+            message: '新增订单失败',
           });
         }
       });
+      connection.end();
     }
   } catch (error) {
     res.send({
