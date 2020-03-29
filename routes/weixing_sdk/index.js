@@ -1,10 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var AlipaySdk = require('alipay-sdk').default;
-var AlipayFormData = require('alipay-sdk/lib/form').default;
 var https = require('https');
+const Mysql = require('mysql');
 var fs = require('fs');
 var os = require('os');
+var path = require('path');
 
 function getIPAdress() {
   // if(localIp) return localIp;
@@ -22,19 +22,6 @@ function getIPAdress() {
   // localIp = localIPAddress;
   return localIPAddress;
 }
-
-const alipaySdk = new AlipaySdk({
-  // 参考下方 SDK 配置
-  url: 'https://api.mch.weixin.qq.com/pay/unifiedorder',
-  appId: 'wx8abd653c5920823b',
-  mch_id: 'wx8abd653c5920823b',
-  nonce_str: '5K8264ILTKCH16Ca2502SI8ZNMTM63VS',
-  spbill_create_ip: getIPAdress(),
-  // privateKey: fs.readFileSync('./public/ssl/zfb/private-key.pem', 'ascii'), // 应用私钥字符串
-  // alipayPublicKey: fs.readFileSync('./public/ssl/zfb/public-key.pem', 'ascii'), // 支付宝公钥
-  privateKey: 'lgyyzf1234lgyyzf1234lgyyzf123473', // 应用私钥字符串
-  alipayPublicKey: fs.readFileSync('./public/ssl/zfb/public-key.pem', 'ascii'), // 支付宝公钥
-});
 
 const DFormat = (value) => { // 日期Filter
   const Str = value;
@@ -89,7 +76,7 @@ const checkFn = (e, query, res) => {
   if (query && e) {
     let onoff = true;
     e.forEach(i => {
-      if (!query[i]) {
+      if (!query[i] && onoff) {
         res.send({
           result: 'error',
           errorCode: 200,
@@ -119,7 +106,8 @@ const config = {
   mchid: '1558987061',
   partnerKey: 'lgyyzf1234lgyyzf1234lgyyzf123473',
   // pfx: require('fs').readFileSync('证书文件路径'),
-  pfx: fs.readFileSync('./public/ssl/weixin/apiclient_cert.p12', 'ascii'),
+  // pfx: fs.readFileSync('./public/ssl/weixin/apiclient_cert.p12', 'ascii'),
+  pfx: fs.readFileSync( path.resolve(__dirname,"../../ssl/weixin/apiclient_cert.p12"), 'ascii'),
   notify_url: 'https://www.ushance.com/weixing_sdk/web/yanqian.json',
   // spbill_create_ip: 'IP地址'
 };
@@ -301,6 +289,182 @@ router.get('/web/refundQuery.json', async function(req, res, next) {
     });
   }
 });
+
+// 获取手机
+router.post('/web/get_phone.json', async function(req, res, next) {
+  try {
+    var WXBizDataCrypt = require('./WXBizDataCrypt');
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['code', 'iv', 'encryptedData'], query, res)) {
+      const appId = 'wx19571e16a64f866c';
+      const secret = '5450c6a752aedcaecec5033c1b536d74';
+      const encryptedData = query.encryptedData;
+      const iv = query.iv;
+      const Url = encodeURI(`https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${secret}&js_code=${query.code}&grant_type=authorization_code`);
+      download(Url, function( val ) {
+        if(val){
+          const VAL = JSON.parse(val);
+          const sessionKey = VAL.session_key; // val => sessionKey
+          const pc = new WXBizDataCrypt(appId, sessionKey)
+          const data = pc.decryptData(encryptedData , iv)
+          res.send({
+            data: data,
+            result: 'succeed',
+            errorCode: 200,
+            message: '',
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: 200,
+            message: '代码出错了',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 200,
+      message: '代码出错了',
+    });
+  }
+});
+
+router.post('/web/phone_sign_in.json', async function(req, res, next) {
+  try {
+    var WXBizDataCrypt = require('./WXBizDataCrypt');
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['code', 'iv', 'encryptedData', 'name', 'head'], query, res)) {
+      const appId = 'wx19571e16a64f866c';
+      const secret = '5450c6a752aedcaecec5033c1b536d74';
+      const encryptedData = query.encryptedData;
+      const iv = query.iv;
+      const Url = encodeURI(`https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${secret}&js_code=${query.code}&grant_type=authorization_code`);
+      download(Url, function( val ) {
+        if(val){
+          const VAL = JSON.parse(val);
+          const sessionKey = VAL.session_key; // val => sessionKey
+          const pc = new WXBizDataCrypt(appId, sessionKey);
+          if (pc && pc.decryptData) {
+            const data = pc.decryptData(encryptedData , iv);
+            if (data && data.phoneNumber) {
+              var connection = Mysql.createConnection(host);
+              connection.connect();
+              var select = 'select ' + '*' + ' from ' + 'my_web.USE' + ' where ' + `phone = "${data.phoneNumber}"`
+              connection.query(select, function(err, result, fields) {
+                if (!err && result[0]) { // 有是登录
+                  const Item = result[0];
+                  const address = Item.address;
+                  if (address && typeof(address) === 'string') {
+                    try {
+                      Item.address =JSON.parse(address);
+                    } catch (error) {
+                      // 
+                    }
+                  }
+                  delete Item.USE_PASSWORD;
+                  if (Item.money_cart) {
+                    Item.money_cart = JSON.parse(Item.money_cart);
+                  }
+                  res.send({
+                    result: 'succeed',
+                    data: Item,
+                  });
+                } else { // 是注册
+                  const time = DFormat();
+                  var select2 = `INSERT INTO my_web.USE (USE_NAME, USE_ODER, CREATE_DATE, phone, head) VALUES ( '${query.name}', '1', '${time}', '${data.phoneNumber}', '${query.head}')`
+                  var connection2 = Mysql.createConnection(host);
+                  connection2.connect();
+                  connection2.query(select2,(err, result) => {
+                    if (!err) {
+                      res.send({
+                        result: 'succeed',
+                        data: {
+                          USE_ID: result.insertId,
+                          USE_NAME: query.name,
+                          USE_ODER: '1',
+                          phone: data.phoneNumber,
+                          head: query.head
+                        },
+                      });
+                    } else {
+                      res.send({
+                        result: 'error',
+                        errorCode: err,
+                        message: '注册失败',
+                      });
+                    }
+                  });
+                  connection2.end();
+                }
+              });
+              connection.end();
+            }
+          } else {
+            res.send({
+              result: 'error',
+              errorCode: 200,
+              message: '出错了，请一会再试一试',
+            });
+          }
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: 200,
+            message: '代码出错了',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 200,
+      message: '代码出错了',
+    });
+  }
+});
+
+// 获取用户
+router.post('/web/get_user.json', async function(req, res, next) {
+  try {
+    var WXBizDataCrypt = require('./WXBizDataCrypt');
+    const query = req.body;
+    // const query = req.query;
+    if (checkFn(['code'], query, res)) {
+      const appId = 'wx19571e16a64f866c';
+      const secret = '5450c6a752aedcaecec5033c1b536d74';
+      const Url = encodeURI(`https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${secret}&js_code=${query.code}&grant_type=authorization_code`);
+      download(Url, function( val ) {
+        if(val){
+          res.send({
+            data: JSON.parse(val),
+            result: 'succeed',
+            errorCode: 200,
+            message: '',
+          });
+        } else {
+          res.send({
+            result: 'error',
+            errorCode: 200,
+            message: '获取失败',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 200,
+      message: '代码出错了',
+    });
+  }
+});
+
+
 
 function rand(min,max) {
   return Math.floor(Math.random()*(max-min))+min;

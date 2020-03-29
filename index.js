@@ -10,6 +10,7 @@ var debug = require('debug')('nodeservice:server');
 var https = require('https');
 var http = require('http');
 var fs = require('fs');
+var path = require('path');
 
 /**
  * Create HTTP server.
@@ -34,8 +35,9 @@ app.set('port', port);
 /**
  * Create HTTPS server.
  */
-var privateKey  = fs.readFileSync('./public/ssl/2883636_www.ushance.com.key', 'utf8');
-var certificate = fs.readFileSync('./public/ssl/2883636_www.ushance.com.crt', 'utf8');
+var privateKey  = fs.readFileSync(path.resolve(__dirname,"./ssl/2883636_www.ushance.com.key"), 'utf8');
+var certificate = fs.readFileSync(path.resolve(__dirname,"./ssl/2883636_www.ushance.com.crt"), 'utf8');
+// var certificate = fs.readFileSync('/ssl/2883636_www.ushance.com.crt', 'utf8')should
 var options = {
   key: privateKey,
   cert: certificate,

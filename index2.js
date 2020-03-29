@@ -7,7 +7,6 @@
 var app = require('./app');
 // var app = require('../dist/app');
 var debug = require('debug')('nodeservice:server');
-var https = require('https');
 var http = require('http');
 var fs = require('fs');
 

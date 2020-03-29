@@ -12,15 +12,21 @@ var this_dev = dev;
 
 // 页面配置文件
 var index = require('./' + this_dev + '/index'); // pc首页
+var dataCenter = require('./' + this_dev + '/dataCenter'); // 数据中心页面
 // 接口配置文件
 var web_index = require('./' + this_dev + '/web_link/index'); // pc首页
 var web_accept = require('./' + this_dev + '/web_link/accept'); // accept
+var web_file = require('./' + this_dev + '/web_link/file'); // file
+var web_resume = require('./' + this_dev + '/web_link/resume'); // resume
 // 支付宝支付
 var zfb_sdk = require('./' + this_dev + '/zfb_sdk/index');
 // 微信支付
 var weixing_sdk = require('./' + this_dev + '/weixing_sdk/index');
 // 网银支付
 var wangyin_sdk = require('./' + this_dev + '/wangyin_sdk/index');
+
+/* erha_app */
+var erha = require('./' + this_dev + '/erha/index');
 
 var app = express();
 
@@ -59,12 +65,13 @@ app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
-    index(req, res, next)
-    // if (hostType === 'www') {
-    //   index(req, res, next)
-    // } else {
-    //   next();
-    // }
+    if (hostType === 'www') {
+      index(req, res, next)
+    } else if (hostType === 'data_center') {
+      dataCenter(req, res, next)
+    } else {
+      next();
+    }
   } catch (error) {
     var err = new Error('Not Found');
     err.status = 404;
@@ -78,6 +85,8 @@ app.use((req, res, next)=>{
 // 线上要部署的页面请求
 app.use('/web/index', web_index);
 app.use('/web/accept', web_accept);
+app.use('/web/file', web_file);
+app.use('/web/resume', web_resume);
 
 // 支付宝支付
 app.use('/zfb_sdk', zfb_sdk);
@@ -85,6 +94,9 @@ app.use('/zfb_sdk', zfb_sdk);
 app.use('/weixing_sdk', weixing_sdk);
 // 网银支付
 app.use('/wangyin_sdk', wangyin_sdk);
+
+/* erha */
+app.use('/erha', erha);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
