@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var fs = require('fs');
+var qr = require('qr-image');
 var path = require('path');
 const {
   download,
@@ -2540,6 +2541,24 @@ router.get('/order_ok.json', async function(req, res, next) { // 订单结算成
       result: 'error',
       errorCode: error,
       message: '未知错误',
+    });
+  }
+});
+
+// 获取用户二维码
+router.get('/get_use_code.json', async function(req, res, next) {
+  try {
+    const query = req.query;
+    if (checkFn(['user_id'], query, res)) {
+      var img = qr.image(`https://www.ushance.com/?type=erha*use_${query.user_id}`,{size :10});
+      res.writeHead(200, {'Content-Type': 'image/png'});
+      img.pipe(res);
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: 200,
+      message: '代码出错了',
     });
   }
 });
