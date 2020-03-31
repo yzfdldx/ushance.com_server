@@ -991,7 +991,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                 },
                                 {
                                   key: 'accu_income',
-                                  default: (accu_income + order_price).toFixed(2),
+                                  default: (accu_income + price).toFixed(2),
                                   defaultSet: true,
                                 }
                               ]
