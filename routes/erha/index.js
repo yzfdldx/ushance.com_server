@@ -2425,7 +2425,8 @@ router.get('/get_money.json', async function(req, res, next) { // 提现
         if (result && result[0]) {
           let extract_detail = [];
           try {
-            extract_detail = JSON.parse(result[0].extract_detail)
+            extract_detail = JSON.parse(result[0].extract_detail);
+            extract_detail = extract_detail ? extract_detail : [];
           } catch (error) {
             //
           }
