@@ -914,9 +914,9 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               let accu_pay = 0;
                               let accu_income = 0;
                               result_company.forEach(ee => {
-                                accu_profit += parseFloat(ee.profit ? ee.profit : 0);
-                                accu_pay += parseFloat(ee.pay_money ? ee.pay_money : 0);
-                                accu_income += parseFloat(ee.income_money ? ee.income_money : 0);
+                                accu_profit += ee.profit ? parseFloat(ee.profit) : 0;
+                                accu_pay += ee.pay_money ? parseFloat(ee.pay_money) : 0;
+                                accu_income += ee.income_money ? parseFloat(ee.income_money) : 0;
                               });
                               let income_list = [];
                               income_list.push({
