@@ -2438,7 +2438,8 @@ router.get('/get_money.json', async function(req, res, next) { // 提现
             message: '等待公司提现到用户',
           })
           extract_detail = JSON.stringify(extract_detail);
-          let str = `extract_detail = '${extract_detail}'`
+          let str = `extract_detail = '${extract_detail}'`;
+          str += `, apply_extract = '${query.price}'`;
           var select2 = `update my_web.erha_use set ` +
           str +
           ` where id = ${query.user_id}`;
@@ -2483,7 +2484,7 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
         id: query.user_id,
         res,
         table: 'my_web.erha_use',
-        edit: ['extract_money', 'extract_detail'],
+        edit: ['extract_money', 'extract_detail', 'apply_extract'],
         edit_fn: (edit) => {
           let extract_detail = [];
           try {
@@ -2498,8 +2499,10 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
           }
           extract_detail = JSON.stringify(extract_detail);
           let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
+          let apply_extract = edit.apply_extract ? parseFloat(edit.apply_extract) : 0;
           return {
             extract_money: (extract_money - parseFloat(query.price)).toFixed(2),
+            apply_extract: (apply_extract - parseFloat(query.price)).toFixed(2),
             extract_detail: extract_detail,
           }
         },
