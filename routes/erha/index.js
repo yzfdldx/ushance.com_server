@@ -698,7 +698,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           let str2 = `account = '${account}'`;
                           str2 += `, order_list = '${order_list}'`;
 
-                          str2 += `, money = '${ (money + registration_p).toFixed(2)}'`;
+                          str2 += `, money = '${(money + registration_p).toFixed(2)}'`;
                           str2 += `, total_money = '${(total_money + registration_p).toFixed(2)}'`;
                           str2 += `, booth_money = '${(booth_money + self_mention_price).toFixed(2)}'`;
                           if (!query.share_id && up_onoff) { // 下线
@@ -731,7 +731,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               message: '订单',
                               type: 'add', // 自提点新增
                               pay: '用户', // 有ushance支付
-                              money: registration_p.toFixed(2),
+                              money: supplier_price.toFixed(2),
                               time: Time
                             })
                             account = JSON.stringify(account)
