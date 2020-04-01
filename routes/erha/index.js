@@ -1122,14 +1122,14 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
   try {
     // const query = req.query;
     const query = req.body;
-    if (checkFn(['id'], query, res)) {
+    if (checkFn(['order_id'], query, res)) {
       let str = `hidden = '${1}'`;
       var select_edit = `update my_web.erha_order set ` +
       str +
-      ` where id = ${query.id}`;
+      ` where id = ${query.order_id}`;
       MQ_ok(select_edit, res, (result_edit) => {
         if (result_edit) {
-          var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `id = ${query.id}`;
+          var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `id = ${query.order_id}`;
           MQ_ok(select, res, (result) => {
             if (result && result[0]) {
               const order = result[0];
@@ -1292,6 +1292,57 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                     },
                   })
                 }
+                // 公司
+                const this_date = DFormat('', 'date')
+                var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company' + ' where ' + `date = ${this_date}`;
+                MQ_ok(select_company, null, (result_company) => {
+                  if (result_company && result_company[0]) {
+                    see_edit({
+                      id: result_company[0].id,
+                      init_value: result_company[0],
+                      res: null,
+                      table: 'my_web.erha_company',
+                      edit: edit_arr,
+                      edit_fn: (edit) => {
+                        let income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
+                        income_list.push({
+                          message: '退单',
+                          type: 'del', // 自提点新增
+                          pay: '用户', // 有ushance支付
+                          money: acount.price,
+                          profit: acount.profit,
+                          time: Time
+                        })
+                        income_list = JSON.stringify(income_list)
+                        let pay_list = edit.pay_list ? JSON.parse(edit.pay_list) : [];
+                        const pay_money = parseFloat(acount.self_mention_price) + parseFloat(acount.share_price) + parseFloat(acount.earning_price)
+                        pay_list.push({
+                          message: '退单',
+                          type: 'add', // 自提点新增
+                          pay: '用户', // 有ushance支付
+                          money: pay_money.toFixed(2),
+                          supplier_price: acount.supplier_price,
+                          time: Time,
+                        })
+                        pay_list = JSON.stringify(pay_list)
+                        //
+                        return {
+                          income_list,
+                          income_money: (parseFloat(edit.income_money) - parseFloat(acount.price)).toFixed(2),
+                          pay_list,
+                          pay_money: (parseFloat(edit.pay_money) + pay_money).toFixed(2),
+                          profit: (parseFloat(edit.profit) - parseFloat(acount.profit)).toFixed(2),
+                          accu_profit: (parseFloat(edit.accu_profit) - parseFloat(acount.profit)).toFixed(2),
+                          accu_pay: (parseFloat(edit.accu_pay) + pay_money).toFixed(2),
+                          accu_income: (parseFloat(edit.accu_income) - parseFloat(acount.price)).toFixed(2)
+                        }
+                      },
+                      succeed: (result3) => {
+                        //
+                      },
+                    })
+                  }
+                })
                 // 自提点
                 see_edit({
                   id: order.self_mention_id,
