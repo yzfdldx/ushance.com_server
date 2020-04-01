@@ -1120,8 +1120,8 @@ router.get('/del_order.json', function(req, res, next) { // 删除订单审核
 });
 router.get('/del_pay_order.json', async function(req, res, next) { // 删除订单
   try {
-    // const query = req.query;
-    const query = req.body;
+    const query = req.query;
+    // const query = req.body;
     if (query.order_id) {
       let str = `hidden = '${1}'`;
       var select_edit = `update my_web.erha_order set ` +
