@@ -939,7 +939,10 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                 money: (supplier_price + registration_p).toFixed(2),
                                 supplier_price: supplier_price.toFixed(2),
                                 registration_p: registration_p.toFixed(2),
-                                time: Time
+                                time: Time,
+                                self_mention_price: self_mention_price.toFixed(2),
+                                share_price: share_price.toFixed(2),
+                                earning_price: earning_price.toFixed(2)
                               })
                               pay_list = JSON.stringify(pay_list)
                               //
