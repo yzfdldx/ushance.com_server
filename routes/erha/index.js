@@ -1127,8 +1127,8 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           const order = result[0];
-          if (order && !order.hidden) {
-            let str = `hidden = '${1}'`;
+          if (order && order.del !== '3') {
+            let str = `del = '${3}'`;
             var select_edit = `update my_web.erha_order set ` +
             str +
             ` where id = ${query.order_id}`;
