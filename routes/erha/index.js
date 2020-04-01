@@ -1123,6 +1123,283 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
     const query = req.query;
     // const query = req.body;
     if (query.order_id) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `id = ${query.order_id}`;
+      MQ_ok(select, res, (result) => {
+        if (result && result[0]) {
+          const order = result[0];
+          if (order && !order.hidden) {
+            let str = `hidden = '${1}'`;
+            var select_edit = `update my_web.erha_order set ` +
+            str +
+            ` where id = ${query.order_id}`;
+            MQ_ok(select_edit, res, (result_edit) => {
+              if (result_edit) {
+                const Time = DFormat();
+                if (order.acount) {
+                  const acount = JSON.parse(order.acount);
+                  const trans_onoff = order.trans === '2' || order.trans === '3' ? true : false;
+                  // const acount = JSON.stringify({
+                  //   price: price.toFixed(2),
+                  //   supplier_price: supplier_price.toFixed(2), // 成本
+                  //   self_mention_price: self_mention_price.toFixed(2), // 自提点
+                  //   share_price: share_price.toFixed(2), // 分享
+                  //   earning_price: earning_price.toFixed(2), // 下线
+                  //   profit: profit.toFixed(2), // 利润
+                  // });
+                  const edit_arr = ['money', 'total_money', 'account'];
+                  if (trans_onoff) {
+                    edit_arr.push('extract_money');
+                  }
+                  // 供应商
+                  see_edit({
+                    id: order.supplier_id,
+                    res: null,
+                    table: 'my_web.erha_supplier',
+                    edit: edit_arr,
+                    edit_fn: (edit) => {
+                      let money = edit.money ? parseFloat(edit.money) : 0;
+                      let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
+                      let account = edit.account ? JSON.parse(edit.account) : [];
+                      let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
+                      if (trans_onoff) {
+                        extract_money = (extract_money - parseFloat(acount.supplier_price)).toFixed(2);
+                      }
+                      account.push({
+                        message: '退单',
+                        type: 'del', // 自提点新增
+                        pay: '用户', // 有ushance支付
+                        money: parseFloat(acount.supplier_price),
+                        time: Time
+                      })
+                      account = JSON.stringify(account);
+                      return {
+                        money: (money - parseFloat(acount.supplier_price)).toFixed(2),
+                        total_money: (total_money - parseFloat(acount.supplier_price)).toFixed(2),
+                        extract_money: trans_onoff ? extract_money: undefined,
+                        account
+                      }
+                    },
+                    succeed: (result3) => {
+                      //
+                    },
+                  })
+                  
+                  if (order.share_id && order.share_type === '2') { // 是被人分享的
+                    // 修改分享用户
+                    see_edit({
+                      id: order.share_id,
+                      // init_value: null,
+                      res: null,
+                      table: 'my_web.erha_use',
+                      edit: edit_arr,
+                      edit_fn: (edit) => {
+                        let money = edit.money ? parseFloat(edit.money) : 0;
+                        let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
+                        let account = edit.account ? JSON.parse(edit.account) : [];
+                        let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
+                        if (trans_onoff) {
+                          extract_money = (extract_money - parseFloat(acount.share_price)).toFixed(2);
+                        }
+                        account.push({
+                          message: '退单',
+                          type: 'del', // 自提点新增
+                          pay: '用户', // 有ushance支付
+                          money: parseFloat(acount.share_price),
+                          time: Time
+                        })
+                        account = JSON.stringify(account);
+                        return {
+                          money: (money - parseFloat(acount.share_price)).toFixed(2),
+                          total_money: (total_money - parseFloat(acount.share_price)).toFixed(2),
+                          extract_money: trans_onoff ? extract_money: undefined,
+                          account
+                        }
+                      },
+                      succeed: (result3) => {
+                        //
+                      },
+                    })
+                  }
+                  // 修改用户
+                  if (!trans_onoff) {
+                    see_edit({
+                      id: order.use_id,
+                      // init_value: null,
+                      res: null,
+                      table: 'my_web.erha_use',
+                      edit: ['money', 'total_money', 'account', 'extract_money'],
+                      edit_fn: (edit) => {
+                        let money = edit.money ? parseFloat(edit.money) : 0;
+                        let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
+                        let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
+                        let account = edit.account ? JSON.parse(edit.account) : [];
+                        account.push({
+                          message: '退单',
+                          type: 'del', // 自提点新增
+                          pay: '用户', // 有ushance支付
+                          money: parseFloat(acount.price),
+                          time: Time
+                        })
+                        account = JSON.stringify(account);
+                        return {
+                          money: (money + parseFloat(acount.price)).toFixed(2),
+                          extract_money: (extract_money + parseFloat(acount.price)).toFixed(2),
+                          total_money: (total_money + parseFloat(acount.price)).toFixed(2),
+                          account
+                        }
+                      },
+                      succeed: (result3) => {
+                        //
+                      },
+                    })
+                  } else {
+                    see_edit({
+                      id: order.use_id,
+                      // init_value: null,
+                      res: null,
+                      table: 'my_web.erha_use',
+                      edit: ['extract_detail', 'account'],
+                      edit_fn: (edit) => {
+                        let extract_detail = [];
+                        try {
+                          extract_detail = JSON.parse(edit.extract_detail)
+                        } catch (error) {
+                          //
+                        }
+                        extract_detail.push({
+                          id: extract_detail.length + 1,
+                          type: 'del',
+                          describe: '退款',
+                          price: acount.price,
+                          do: '2',
+                          message: '等待公司退款到用户',
+                        })
+                        let account = edit.account ? JSON.parse(edit.account) : [];
+                        account.push({
+                          message: '退单',
+                          type: 'del', // 自提点新增
+                          pay: '用户', // 有ushance支付
+                          money: parseFloat(acount.price),
+                          time: Time
+                        })
+                        account = JSON.stringify(account);
+                        return {
+                          extract_detail: JSON.stringify(extract_detail),
+                          account
+                        }
+                      },
+                      succeed: (result3) => {
+                        //
+                      },
+                    })
+                  }
+                  // 公司
+                  const this_date = DFormat('', 'date')
+                  var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company' + ' where ' + `date = ${this_date}`;
+                  MQ_ok(select_company, null, (result_company) => {
+                    console.log(result_company)
+                    if (result_company && result_company[0]) {
+                      see_edit({
+                        id: result_company[0].id,
+                        init_value: result_company[0],
+                        res: null,
+                        table: 'my_web.erha_company',
+                        edit: edit_arr,
+                        edit_fn: (edit) => {
+                          let income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
+                          income_list.push({
+                            message: '退单',
+                            type: 'del', // 自提点新增
+                            pay: '用户', // 有ushance支付
+                            money: acount.price,
+                            profit: acount.profit,
+                            time: Time
+                          })
+                          income_list = JSON.stringify(income_list)
+                          let pay_list = edit.pay_list ? JSON.parse(edit.pay_list) : [];
+                          const pay_money = parseFloat(acount.self_mention_price) + parseFloat(acount.share_price) + parseFloat(acount.earning_price)
+                          pay_list.push({
+                            message: '退单',
+                            type: 'add', // 自提点新增
+                            pay: '用户', // 有ushance支付
+                            money: pay_money.toFixed(2),
+                            supplier_price: acount.supplier_price,
+                            time: Time,
+                          })
+                          pay_list = JSON.stringify(pay_list)
+                          //
+                          return {
+                            income_list,
+                            income_money: (parseFloat(edit.income_money) - parseFloat(acount.price)).toFixed(2),
+                            pay_list,
+                            pay_money: (parseFloat(edit.pay_money) + pay_money).toFixed(2),
+                            profit: (parseFloat(edit.profit) - parseFloat(acount.profit)).toFixed(2),
+                            accu_profit: (parseFloat(edit.accu_profit) - parseFloat(acount.profit)).toFixed(2),
+                            accu_pay: (parseFloat(edit.accu_pay) + pay_money).toFixed(2),
+                            accu_income: (parseFloat(edit.accu_income) - parseFloat(acount.price)).toFixed(2)
+                          }
+                        },
+                        succeed: (result3) => {
+                          //
+                        },
+                      })
+                    }
+                  })
+                  // 自提点
+                  see_edit({
+                    id: order.self_mention_id,
+                    res,
+                    table: 'my_web.erha_supplier',
+                    edit: edit_arr,
+                    edit_fn: (edit) => {
+                      const self_mention_price = parseFloat(acount.self_mention_price) + parseFloat(acount.share_price) + parseFloat(acount.earning_price)
+                      let money = edit.money ? parseFloat(edit.money) : 0;
+                      let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
+                      let account = edit.account ? JSON.parse(edit.account) : [];
+                      let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
+                      if (trans_onoff) {
+                        extract_money = (extract_money - self_mention_price).toFixed(2);
+                      }
+                      account.push({
+                        message: '退单',
+                        type: 'del', // 自提点新增
+                        pay: '用户', // 有ushance支付
+                        money: self_mention_price.toFixed(2),
+                        time: Time
+                      })
+                      account = JSON.stringify(account);
+                      return {
+                        money: (money - self_mention_price).toFixed(2),
+                        total_money: (total_money - self_mention_price).toFixed(2),
+                        extract_money: trans_onoff ? extract_money: undefined,
+                        account
+                      }
+                    },
+                    succeed: (result3) => {
+                      res.send({
+                        result: 'succeed',
+                        data: order,
+                      });
+                    },
+                  })
+                }
+              }
+            })
+          } else {
+            res.send({
+              result: 'error',
+              data: {},
+              message: '已退单',
+            });
+          }
+        } else {
+          res.send({
+            result: 'error',
+            data: {},
+            message: '查询错误',
+          });
+        }
+      })
       let str = `hidden = '${1}'`;
       var select_edit = `update my_web.erha_order set ` +
       str +
@@ -1296,6 +1573,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                 const this_date = DFormat('', 'date')
                 var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company' + ' where ' + `date = ${this_date}`;
                 MQ_ok(select_company, null, (result_company) => {
+                  console.log(result_company)
                   if (result_company && result_company[0]) {
                     see_edit({
                       id: result_company[0].id,
