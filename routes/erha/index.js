@@ -526,7 +526,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                     const Time = DFormat();
                     const price = (parseFloat(query.shop_num) * parseFloat(shop.discount_price));
                     const up_onoff = code_use.find(e => `${e}` === `${query.use_id}`); // 是不是该自提点的下线
-                    const supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price));
+                    const supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price ? shop.supplier_price : 0));
                     const self_mention_price = (price * parseFloat(shop.self_mention_proportion));
                     const share_price = (query.share_id ? price * parseFloat(shop.share_proportion) : 0);
                     const earning_price = (up_onoff && !share_price ? price * parseFloat(shop.earning_proportion) : 0);
