@@ -1122,7 +1122,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
   try {
     // const query = req.query;
     const query = req.body;
-    if (checkFn(['order_id'], query, res)) {
+    if (query.order_id) {
       let str = `hidden = '${1}'`;
       var select_edit = `update my_web.erha_order set ` +
       str +
@@ -1396,6 +1396,11 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
           });
         }
       })
+    } else {
+      res.send({
+        result: 'error',
+        message: 'order_id不能是空',
+      });
     }
   } catch (error) {
     res.send({
