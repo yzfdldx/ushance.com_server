@@ -653,12 +653,12 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                       },
                       {
                         key: 'share_id',
-                        default: query.share_id ? (query.share_id ? query.share_id : '') : self_mention.id,
+                        default: query.share_id ? (up_onoff ? self_mention.id : query.share_id) : '',
                         defaultSet: true,
                       },
                       {
                         key: 'share_type',
-                        default: query.share_id ? (up_onoff ? '1' : '2') : '1',
+                        default: query.share_id ? (up_onoff ? '1' : '2') : '',
                         defaultSet: true,
                       }
                     ]
