@@ -1186,7 +1186,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                 if (order.share_id && order.share_type === '2') { // 是被人分享的
                   // 修改分享用户
                   see_edit({
-                    id: query.share_id,
+                    id: order.share_id,
                     // init_value: null,
                     res: null,
                     table: 'my_web.erha_use',
@@ -1222,7 +1222,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                 // 修改用户
                 if (!trans_onoff) {
                   see_edit({
-                    id: query.use_id,
+                    id: order.use_id,
                     // init_value: null,
                     res: null,
                     table: 'my_web.erha_use',
@@ -1253,7 +1253,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                   })
                 } else {
                   see_edit({
-                    id: query.use_id,
+                    id: order.use_id,
                     // init_value: null,
                     res: null,
                     table: 'my_web.erha_use',
