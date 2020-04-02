@@ -1295,13 +1295,14 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                   }
                   // 公司
                   const this_date = DFormat('', 'date')
-                  var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company' + ' where ' + `date = ${this_date}`;
+                  var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company';
                   MQ_ok(select_company, null, (result_company) => {
-                    console.log(result_company)
-                    if (result_company && result_company[0]) {
+                    const this_company = result_company.find(e => e.date === this_date);
+                    console.log(this_company)
+                    if (this_company && this_company) {
                       see_edit({
-                        id: result_company[0].id,
-                        init_value: result_company[0],
+                        id: this_company.id,
+                        init_value: this_company,
                         res: null,
                         table: 'my_web.erha_company',
                         edit: edit_arr,
