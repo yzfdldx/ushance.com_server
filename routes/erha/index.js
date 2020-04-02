@@ -1298,8 +1298,8 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                   var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company';
                   MQ_ok(select_company, null, (result_company) => {
                     const this_company = result_company.find(e => e.date === this_date);
-                    console.log(this_company)
-                    if (this_company && this_company) {
+                    console.log(this_company, result_company, this_date)
+                    if (this_company) {
                       see_edit({
                         id: this_company.id,
                         init_value: this_company,
