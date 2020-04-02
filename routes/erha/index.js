@@ -2538,8 +2538,9 @@ router.get('/get_money.json', async function(req, res, next) { // 提现
 router.get('/get_money_ok.json', async function(req, res, next) { // 提现成功
   try {
     const query = req.query;
-    if (checkFn(['user_id', 'price', 'extract_detail_id'], query, res)) {
+    if (checkFn(['user_id', 'price'], query, res)) {
       // extract_detail
+      let onoff = true;
       see_edit({
         id: query.user_id,
         res,
@@ -2549,6 +2550,7 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
           let apply_extract = edit.apply_extract ? parseFloat(edit.apply_extract) : 0;
           let price = query.price ? parseFloat(query.price) : 0;
           if (apply_extract < price) {
+            onoff = false;
             return edit
           }
           const extract_detail = JSON.stringify({
@@ -2567,9 +2569,16 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
           }
         },
         succeed: (result3) => {
-          res.send({
-            result: 'succeed'
-          });
+          if (onoff) {
+            res.send({
+              result: 'succeed'
+            });
+          } else {
+            res.send({
+              result: 'error',
+              message: '提现金额不能大于申请金额'
+            });
+          }
         },
       })
     }
