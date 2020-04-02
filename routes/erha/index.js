@@ -888,7 +888,6 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   pay_list = JSON.stringify(pay_list)
                                   //
                                   let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
-                                  console.log(order_list)
                                   order_list.push(result_a.insertId)
                                   order_list = JSON.stringify(order_list)
                                   console.log(order_list)
@@ -1300,15 +1299,15 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                   MQ_ok(select_company, null, (result_company) => {
                     const this_company = result_company.find(e => e.date === this_date);
                     if (this_company) {
-                      console.log('erha_company11')
+                      // console.log('erha_company11', this_company.id)
                       see_edit({
                         id: this_company.id,
                         init_value: this_company,
                         res: null,
                         table: 'my_web.erha_company',
-                        edit: edit_arr,
+                        edit: ['income_list', 'income_money', 'pay_list', 'pay_money', 'profit', 'accu_profit', 'accu_pay', 'accu_income'],
                         edit_fn: (edit) => {
-                          console.log('erha_company22')
+                          console.log('del_pay_order | erha_company')
                           let income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
                           income_list.push({
                             message: '退单',
