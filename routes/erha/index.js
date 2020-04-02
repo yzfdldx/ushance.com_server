@@ -2556,17 +2556,17 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
         edit_fn: (edit) => {
           let extract_detail = [];
           let apply_extract = edit.apply_extract ? parseFloat(edit.apply_extract) : 0;
-          if (apply_extract <= 0) {
+          let price = query.price ? parseFloat(query.price) : 0;
+          if (apply_extract < price) {
             return edit
           }
           try {
-            extract_detail = JSON.parse(edit.extract_detail);
-            extract_detail = extract_detail ? extract_detail : [];
-            extract_detail = map((ee, k) => `${k + 1}` === `${query.extract_detail_id}` ? ({
+            extract_detail = edit.extract_detail ? JSON.parse(edit.extract_detail) : [];
+            extract_detail[parseInt(query.extract_detail_id)] = {
               ...ee,
               do: '',
               message: '提现成功',
-            }) : ee)
+            }
           } catch (error) {
             //
           }
@@ -2574,9 +2574,9 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
           let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
           let money = edit.money ? parseFloat(edit.money) : 0;
           return {
-            extract_money: (extract_money - parseFloat(query.price)).toFixed(2),
-            apply_extract: (apply_extract - parseFloat(query.price)).toFixed(2),
-            money: (money - parseFloat(query.price)).toFixed(2),
+            extract_money: (extract_money - price).toFixed(2),
+            apply_extract: (apply_extract - price).toFixed(2),
+            money: (money - price).toFixed(2),
             extract_detail: extract_detail,
           }
         },
