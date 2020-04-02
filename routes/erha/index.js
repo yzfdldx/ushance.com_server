@@ -1294,7 +1294,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                     })
                   }
                   // 公司
-                  const this_date = DFormat(creat_time, 'date')
+                  const this_date = DFormat(order.creat_time, 'date')
                   var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company';
                   MQ_ok(select_company, null, (result_company) => {
                     const this_company = result_company.find(e => e.date === this_date);
