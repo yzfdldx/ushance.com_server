@@ -887,10 +887,11 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   })
                                   pay_list = JSON.stringify(pay_list)
                                   //
-                                  let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];;
+                                  let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
+                                  console.log(order_list)
                                   order_list.push(result_a.insertId)
                                   order_list = JSON.stringify(order_list)
-                                  ['order_list', 'income_list', 'income_money', 'pay_list', 'pay_money', 'profit', 'accu_profit', 'accu_pay', 'accu_income']
+                                  console.log(order_list)
                                   return {
                                     order_list,
                                     income_list,
@@ -1298,8 +1299,8 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                   var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company';
                   MQ_ok(select_company, null, (result_company) => {
                     const this_company = result_company.find(e => e.date === this_date);
-                    console.log(this_company, result_company, this_date)
                     if (this_company) {
+                      console.log('erha_company11')
                       see_edit({
                         id: this_company.id,
                         init_value: this_company,
@@ -1307,6 +1308,7 @@ router.get('/del_pay_order.json', async function(req, res, next) { // 删除订�
                         table: 'my_web.erha_company',
                         edit: edit_arr,
                         edit_fn: (edit) => {
+                          console.log('erha_company22')
                           let income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
                           income_list.push({
                             message: '退单',
