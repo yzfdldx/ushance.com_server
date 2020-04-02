@@ -1591,7 +1591,7 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                     },
                     {
                       key: 'creation_time',
-                      default: time,
+                      default: Time,
                       defaultSet: true,
                     },
                     {
