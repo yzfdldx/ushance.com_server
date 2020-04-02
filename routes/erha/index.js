@@ -2557,7 +2557,7 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
         edit_fn: (edit) => {
           let extract_detail = [];
           try {
-            extract_detail = JSON.parse(result[0].extract_detail);
+            extract_detail = JSON.parse(edit.extract_detail);
             extract_detail = extract_detail ? extract_detail : [];
             extract_detail = map(ee => `${ee.id}` === `${query.extract_detail_id}` ? ({
               ...ee,
