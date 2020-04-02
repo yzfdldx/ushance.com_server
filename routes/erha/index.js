@@ -2491,21 +2491,13 @@ router.get('/get_money.json', async function(req, res, next) { // 提现
       var select = 'select ' + '*' + ' from ' + 'my_web.erha_use' + ' where ' + `id = ${query.user_id}`;
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
-          let extract_detail = [];
-          try {
-            extract_detail = JSON.parse(result[0].extract_detail);
-            extract_detail = extract_detail ? extract_detail : [];
-          } catch (error) {
-            //
-          }
-          extract_detail.push({
+          const extract_detail = JSON.stringify({
             type: 'del',
             describe: '提现',
             price: query.price,
             do: '1',
             message: '等待公司提现到用户',
-          })
-          extract_detail = JSON.stringify(extract_detail);
+          });
           let str = `extract_detail = '${extract_detail}'`;
           str += `, apply_extract = '${query.price}'`;
           var select2 = `update my_web.erha_use set ` +
@@ -2554,23 +2546,17 @@ router.get('/get_money_ok.json', async function(req, res, next) { // 提现成�
         table: 'my_web.erha_use',
         edit: ['money', 'extract_money', 'extract_detail', 'apply_extract'],
         edit_fn: (edit) => {
-          let extract_detail = [];
           let apply_extract = edit.apply_extract ? parseFloat(edit.apply_extract) : 0;
           let price = query.price ? parseFloat(query.price) : 0;
           if (apply_extract < price) {
             return edit
           }
-          try {
-            extract_detail = edit.extract_detail ? JSON.parse(edit.extract_detail) : [];
-            extract_detail[parseInt(query.extract_detail_id)] = {
-              ...ee,
-              do: '',
-              message: '提现成功',
-            }
-          } catch (error) {
-            //
-          }
-          extract_detail = JSON.stringify(extract_detail);
+          const extract_detail = JSON.stringify({
+            type: 'del',
+            describe: '提现',
+            price: query.price,
+            message: '提现成功',
+          });
           let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
           let money = edit.money ? parseFloat(edit.money) : 0;
           return {
