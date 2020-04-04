@@ -529,7 +529,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                     const supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price ? shop.supplier_price : 0));
                     const self_mention_price = (price * parseFloat(shop.self_mention_proportion));
                     const share_price = (query.share_id ? price * parseFloat(shop.share_proportion) : 0);
-                    const earning_price = (up_onoff && !share_price ? price * parseFloat(shop.earning_proportion) : 0);
+                    const earning_price = (up_onoff && query.share_type !== 'mention' ? price * parseFloat(shop.earning_proportion) : 0);
                     const profit = (price - supplier_price - self_mention_price - share_price - earning_price);
                     const acount = JSON.stringify({
                       price: price.toFixed(2),
@@ -674,7 +674,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                         // let supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price)); // 供货商
                         // let registration_p = (self_mention_proportion + (!query.share_id && up_onoff ? earning_proportion : 0) - (query.share_id ? share_proportion : 0))
                         // let profit = (order_price - supplier_price - registration_p)
-                        let registration_p = self_mention_price + share_price + earning_price;
+                        let registration_p = self_mention_price + (query.share_type === 'mention' ? share_price : 0) + earning_price;
                         const Time = DFormat();
                         if (true) { // 修改自提点
                           let order_list = self_mention.order_list ? JSON.parse(self_mention.order_list) : [];
@@ -784,7 +784,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           // init_value: null,
                           res: null,
                           table: 'my_web.erha_use',
-                          edit: ['money', 'extract_money', 'account', 'order_list', 'total_money'],
+                          edit: ['account', 'order_list'],
                           edit_fn: (edit) => {
                             let account = edit.account ? JSON.parse(edit.account) : [];
                             account.push({
@@ -798,22 +798,16 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
                             order_list.push(result_a.insertId)
                             order_list = JSON.stringify(order_list)
-                            let money = edit.money ? parseFloat(edit.money) : 0;
-                            let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
-                            let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
                             return {
                               account,
-                              order_list,
-                              total_money: (total_money - price).toFixed(2),
-                              money: (money - price).toFixed(2),
-                              extract_money: (extract_money - price).toFixed(2)
+                              order_list
                             }
                           },
                           succeed: (result3) => {
                             //
                           },
                         })
-                        if (query.share_id && !up_onoff) { // 是被人分享的
+                        if (query.share_id && query.share_type === 'use') { // 是被人分享的
                           // 修改分享用户
                           see_edit({
                             id: query.share_id,
@@ -839,7 +833,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               return {
                                 account,
                                 order_list,
-                                total_money: (total_money - share_proportion).toFixed(2),
+                                total_money: (total_money + share_proportion).toFixed(2),
                                 money: (money + share_proportion).toFixed(2)
                               }
                             },
@@ -1529,34 +1523,48 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                   let total_money = 0;
                   let extract_money = 0;
                   const account = [];
-                  if (query.type === '1' && query.share_id) { // 自提点
-                    money = 1;
-                    total_money = 1;
-                    extract_money = 1;
-                    account.push({
-                      message: '新人奖励',
-                      type: 'add', // 自提点新增
-                      pay: 'ushance', // 有ushance支付
-                      money: '1.00',
-                      time: Time
-                    })
+                  let up_list = {};
+                  if (query.type === '1' && query.share_id) {
+                    up_list = {
+                      type: 'self_mention',
+                      id: query.share_id,
+                    }
+                    // money = 1;
+                    // total_money = 1;
+                    // extract_money = 1;
+                    // account.push({
+                    //   message: '新人奖励',
+                    //   type: 'add', // 自提点新增
+                    //   pay: 'ushance', // 有ushance支付
+                    //   money: '1.00',
+                    //   time: Time
+                    // })
                   } else if (query.type === '2' && query.share_id) { // 用户
-                    money = 1;
-                    total_money = 1;
-                    extract_money = 1;
-                    account.push({
-                      message: '新人奖励',
-                      type: 'add', // 自提点新增
-                      pay: 'ushance', // 有ushance支付
-                      money: '1.00',
-                      time: Time
-                    })
+                    up_list = {
+                      type: 'use',
+                      id: query.share_id,
+                    }
+                    // money = 1;
+                    // total_money = 1;
+                    // extract_money = 1;
+                    // account.push({
+                    //   message: '新人奖励',
+                    //   type: 'add', // 自提点新增
+                    //   pay: 'ushance', // 有ushance支付
+                    //   money: '1.00',
+                    //   time: Time
+                    // })
                   }
                   const Invitation_code = `${new Date().getTime()}|${data.phoneNumber}`;
                   var Arr = [
                     {
                       key: 'money',
                       default: money,
+                      defaultSet: true,
+                    },
+                    {
+                      key: 'up_list',
+                      default: JSON.stringify(up_list),
                       defaultSet: true,
                     },
                     {
@@ -1620,7 +1628,7 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                         see_edit({
                           id: query.share_id,
                           res,
-                          table: 'my_web.erha_supplier',
+                          table: 'my_web.erha_self_mention',
                           edit: ['money', 'total_money', 'account', 'extract_money', 'code_use'],
                           edit_fn: (edit) => {
                             let money = edit.money ? parseFloat(edit.money) : 0;
@@ -1628,20 +1636,20 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                             let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
                             let account = edit.account ? JSON.parse(edit.account) : [];
                             let code_use = edit.code_use ? JSON.parse(edit.code_use) : [];
-                            account.push({
-                              message: '新人奖励',
-                              type: 'add', // 自提点新增
-                              pay: 'ushance', // 有ushance支付
-                              money: '1.00',
-                              time: Time
-                            })
+                            // account.push({
+                            //   message: '新人奖励',
+                            //   type: 'add', // 自提点新增
+                            //   pay: 'ushance', // 有ushance支付
+                            //   money: '1.00',
+                            //   time: Time
+                            // })
                             account = JSON.stringify(account);
                             code_use.push(back_data.id);
                             code_use = JSON.stringify(code_use);
                             return {
-                              money: (money + 1).toFixed(2),
-                              total_money: (total_money + 1).toFixed(2),
-                              extract_money: (extract_money + 1).toFixed(2),
+                              money: (money + 0).toFixed(2),
+                              total_money: (total_money + 0).toFixed(2),
+                              extract_money: (extract_money + 0).toFixed(2),
                               account,
                               code_use
                             }
@@ -1677,9 +1685,9 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                             online_list.push(back_data.id);
                             online_list = JSON.stringify(online_list);
                             return {
-                              money: (money + 1).toFixed(2),
-                              extract_money: (extract_money + 1).toFixed(2),
-                              total_money: (total_money + 1).toFixed(2),
+                              money: (money + 0).toFixed(2),
+                              extract_money: (extract_money + 0).toFixed(2),
+                              total_money: (total_money + 0).toFixed(2),
                               account,
                               online_list
                             }
@@ -1755,8 +1763,8 @@ router.get('/get_use.json', function(req, res, next) { // 查询用户详情
           });
         } else {
           res.send({
-            result: 'succeed',
-            data: {},
+            result: 'error',
+            message: '不存在该用户',
           });
         }
       })
@@ -1915,20 +1923,22 @@ router.get('/self_mention_detail.json', function(req, res, next) { // 查询自�
             let R2 = 1000000;
             if (latitude * latitude2 > 0 && longitude * longitude2 > 0) { // 统一方向同是北纬等
               onoff = true;
-              R2 = (latitude - latitude2)^2 + (longitude - longitude2)^2
+              R2 = `${Math.pow(latitude - latitude2, 2) + Math.pow(longitude - longitude2, 2)}`
             }
             if (onoff) {
               return ({
                 ...e,
                 order_list: e.order_list ? JSON.parse(e.order_list) : [],
                 address: e.address ? JSON.parse(e.address) : [],
+                query2: query,
                 R2,
               })
             }
             return null
           }).filter(e => e).sort(function(a,b){
-            return a - b;
+            return a.R2 - b.R2;
           }).slice(0, 9)
+          // slice(0, 9)
           res.send({
             result: 'succeed',
             data: Arr,
@@ -2363,42 +2373,58 @@ router.get('/get_pay.json', async function(req, res, next) { // 获取支付参�
 
 router.get('/pay.json', async function(req, res, next) { // 支付成功
   try {
-    // const query = req.query;
-    const query = req.body;
+    const query = req.query;
+    // const query = req.body;
     if (checkFn(['id', 'use_id', 'price'], query, res)) {
-      let str = `trans = '${2}'`
-      var select = `update my_web.erha_order set ` +
-      str +
-      ` where id = ${query.id}`;
-      MQ_ok(select, res, (result) => {
-        if (result && result[0]) {
-          const price = parseFloat(query.price);
-          // 用户
-          see_edit({
-            id: query.use_id,
-            // init_value: null,
-            res: res,
-            table: 'my_web.erha_use',
-            edit: ['extract_money', 'money'],
-            edit_fn: (edit) => {
-              let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
-              let money = edit.money ? parseFloat(edit.money) : 0;
-              return {
-                extract_money: (extract_money + price).toFixed(2),
-                money: (money + price).toFixed(2),
-              }
-            },
-            succeed: (result3) => {
+      var select_d = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `id = ${query.id}`;
+      MQ_ok(select_d, res, (result_d) => {
+        const order = result_d[0];
+        if (order && `${order.trans}` !== '2') {
+          let str = `trans = '${2}'`;
+          str += `, pay_price = '${query.price}'`;
+          var select = `update my_web.erha_order set ` +
+          str +
+          ` where id = ${query.id}`;
+          MQ_ok(select, res, (result) => {
+            if (result) {
+              // 用户
+              see_edit({
+                id: query.use_id,
+                // init_value: null,
+                res: res,
+                table: 'my_web.erha_use',
+                edit: ['pay_detail'],
+                edit_fn: (edit) => {
+                  let pay_detail = edit.pay_detail ? JSON.parse(edit.pay_detail) : [];
+                  pay_detail.push({
+                    type: 'wx',
+                    price: query.price,
+                    time: DFormat()
+                  })
+                  return {
+                    pay_detail: JSON.stringify(pay_detail),
+                  }
+                },
+                succeed: (result3) => {
+                  res.send({
+                    result: 'succeed',
+                    data: result,
+                  });
+                },
+              })
+            } else {
               res.send({
-                result: 'succeed',
-                data: result[0],
+                result: 'error',
+                data: {},
+                message: '不存在该订单',
               });
-            },
+            }
           })
         } else {
           res.send({
-            result: 'succeed',
+            result: 'error',
             data: {},
+            message: '不存在该订单，或者已经确认支付',
           });
         }
       })
