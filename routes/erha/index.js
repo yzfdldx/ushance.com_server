@@ -455,21 +455,19 @@ router.post('/delete_shop_card.json', function(req, res, next) { // 删除购物
           MQ_ok(select2, res, (result2) => { // 查询
             if (result2 && result2[0]) {
               const Item = result2[0];
-              let attention = Item.attention ? parseFloat(Item.attention) : 1;
-              attention = attention - 1;
-              let str2 = `attention = '${attention}'`;
-              var select3 = `update my_web.erha_shop set ` +
-              str2 +
-              ` where id = ${query.shop_id}`;
-              MQ_ok(select3, null, (result3) => { // 改变商品关注度
-                //
-              })
-              setTimeout(() => {
-                res.send({
-                  result: 'succeed',
-                  data: {},
-                });
-              }, 200)
+              // let attention = Item.attention ? parseFloat(Item.attention) : 1;
+              // attention = attention - 1;
+              // let str2 = `attention = '${attention}'`;
+              // var select3 = `update my_web.erha_shop set ` +
+              // str2 +
+              // ` where id = ${query.shop_id}`;
+              // MQ_ok(select3, null, (result3) => { // 改变商品关注度
+              //   //
+              // })
+              res.send({
+                result: 'succeed',
+                data: {},
+              });
             } else {
               res.send({
                 result: 'succeed',
