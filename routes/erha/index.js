@@ -394,7 +394,7 @@ router.post('/edit_shop_card.json', function(req, res, next) { // 编辑购物�
               }
             }
             if (!onoff &&result2) {
-              let order_price = parseFloat(query.shop_num) * parseFloat(Item.discount_price)
+              let order_price = (parseFloat(query.shop_num) * parseFloat(Item.discount_price)).toFixed(2)
               let str = `shop_num = '${query.shop_num}'`;
               str += `, order_price = '${order_price}'`;
               var select = `update my_web.erha_shop_card set ` +
