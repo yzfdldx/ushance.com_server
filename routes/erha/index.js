@@ -11,6 +11,36 @@ const {
   see_edit
 } = require('../common.js');
 
+const DFormat_ch = (value) => { // 日期Filter
+  const Str = value;
+  const ZeorFn = (a) => {
+    let b;
+    if (a < 10) {
+      b = `0${a}`;
+    } else {
+      b = `${a}`;
+    }
+    return b;
+  };
+  try{
+    let oDate;
+    let onoff = false;
+    if (Str) {
+      oDate = new Date(Str);
+    } else {
+      oDate = new Date();
+    }
+    const year = oDate.getFullYear();
+    const month = oDate.getMonth() + 1;
+    const date = oDate.getDate();
+    // return `${year}-${ZeorFn(month)}-${ZeorFn(date)} `;
+    return `${ZeorFn(month)}月${ZeorFn(date)}日`
+  } catch (err) {
+    // alert('代码出错请联系：yzflhez@126.com')
+    return value
+  }
+};
+
 /* 首页 */
 router.get('/recom_swiper.json', function(req, res, next) { // 商品轮播推荐
   try {
@@ -56,6 +86,8 @@ router.get('/recom_swiper.json', function(req, res, next) { // 商品轮播推�
                     pay_oder: e.pay_oder ? JSON.parse(e.pay_oder) : [],
                     pre_sale_time: e.pre_sale_time ? DFormat(e.pre_sale_time) : null,
                     count_down: e.count_down ? DFormat(e.count_down) : null,
+                    show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
+                    show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
                     order_num: num,
                     img: erha_list_img.img
                   })
@@ -161,6 +193,8 @@ router.get('/recom_shop.json', function(req, res, next) { // 商品推荐
                     pay_oder: e.pay_oder ? JSON.parse(e.pay_oder) : [],
                     pre_sale_time: e.pre_sale_time ? DFormat(e.pre_sale_time) : null,
                     count_down: e.count_down ? DFormat(e.count_down) : null,
+                    show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
+                    show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
                     order_num: num,
                   })
                 })
@@ -263,6 +297,8 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     pay_oder: result2[0].pay_oder ? JSON.parse(result2[0].pay_oder) : [],
                     pre_sale_time: result2[0].pre_sale_time ? DFormat(result2[0].pre_sale_time) : null,
                     count_down: result2[0].count_down ? DFormat(result2[0].count_down) : null,
+                    show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
+                    show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
                     media: result2[0] && result2[0].media ? JSON.parse(result2[0].media) : [],
                     operation_proces: result2[0] && result2[0].operation_proces ? JSON.parse(result2[0].operation_proces) : [],
                   },
@@ -294,6 +330,8 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     pay_oder: e.pay_oder ? JSON.parse(e.pay_oder) : [],
                     pre_sale_time: e.pre_sale_time ? DFormat(e.pre_sale_time) : null,
                     count_down: e.count_down ? DFormat(e.count_down) : null,
+                    show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
+                    show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
                     order_num: num,
                   })
                 })
