@@ -299,6 +299,8 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     count_down: result2[0].count_down ? DFormat(result2[0].count_down) : null,
                     show_pre_sale_time: result2[0].pre_sale_time ? DFormat_ch(result2[0].pre_sale_time) : null,
                     show_count_down: result2[0].count_down ? DFormat_ch(result2[0].count_down) : null,
+                    pre_sale_time_getTime: result2[0].pre_sale_time ? new Date(result2[0].pre_sale_time).getTime() : null,
+                    count_down_getTime: result2[0].count_down ? new Date(result2[0].count_down).getTime() : null,
                     media: result2[0] && result2[0].media ? JSON.parse(result2[0].media) : [],
                     operation_proces: result2[0] && result2[0].operation_proces ? JSON.parse(result2[0].operation_proces) : [],
                   },
