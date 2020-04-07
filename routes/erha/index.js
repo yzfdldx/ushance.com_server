@@ -859,7 +859,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                 message: '订单分享',
                                 type: 'add', // 自提点新增
                                 pay: '用户', // 有ushance支付
-                                money: (share_proportion).toFixed(2),
+                                money: (share_price).toFixed(2),
                                 time: Time
                               })
                               account = JSON.stringify(account)
@@ -871,8 +871,8 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               return {
                                 account,
                                 order_list,
-                                total_money: (total_money + share_proportion).toFixed(2),
-                                money: (money + share_proportion).toFixed(2)
+                                total_money: (total_money + share_price).toFixed(2),
+                                money: (money + share_price).toFixed(2)
                               }
                             },
                             succeed: (result3) => {
