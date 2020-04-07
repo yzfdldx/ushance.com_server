@@ -2700,8 +2700,8 @@ router.get('/refund_money_ok.json', async function(req, res, next) { // 退款�
 
 router.get('/order_ok.json', async function(req, res, next) { // 订单结算成功
   try {
-    // const query = req.query;
-    const query = req.body;
+    const query = req.query;
+    // const query = req.body;
     if (checkFn(['id'], query, res)) {
       let str = `trans = '${3}'`;
       str += `, logistic = '${5}'`;
