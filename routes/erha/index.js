@@ -2764,7 +2764,7 @@ router.get('/order_ok.json', async function(req, res, next) { // 订单结算成
                 see_edit({
                   id: order.self_mention_id,
                   res,
-                  table: 'my_web.erha_supplier',
+                  table: 'my_web.erha_self_mention',
                   edit: ['extract_money'],
                   edit_fn: (edit) => {
                     let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
