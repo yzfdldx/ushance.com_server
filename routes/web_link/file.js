@@ -488,9 +488,11 @@ router.get('/down_file', async (req, res, next) => { // 下载文件
       connection.query(select, function(err, result, fields) {
         if (!err && result[0] && result[0].data && !result[0].hide) { // 数据库的
           const Item = result[0];
+          let realName = encodeURI(Item.name,"GBK")
+          realName = realName.toString('iso8859-1')
           res.writeHead(200, {
             'Content-Type': 'application/force-download',
-            'Content-Disposition': 'attachment; filename=' + Item.name,
+            'Content-Disposition': `attachment; filename=${realName}`,
             'Content-Length': Item.size
           });
           if (Item.show_type == 1) {
