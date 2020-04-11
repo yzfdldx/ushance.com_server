@@ -226,6 +226,30 @@ router.get('/recom_shop.json', function(req, res, next) { // 商品推荐
     });
   }
 });
+router.get('/recom_message.json', function(req, res, next) { // 新闻简报
+  try {
+    // const query = req.query;
+    // const query = req.body;
+    var select = 'select ' + '*' + ' from ' + 'my_web.erha_list' + ' where ' + `id = 5`;
+    MQ_ok(select, res, (result) => {
+      if (result) {
+        res.send({
+          result: 'succeed',
+          data: {
+            ...result[0],
+            data: result[0].data ? JSON.parse(result[0].data) : [],
+          }
+        });
+      }
+    })
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
 /* 分类 */
 router.get('/list.json', function(req, res, next) { // 分类
   try {
