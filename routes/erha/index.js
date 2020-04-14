@@ -2351,7 +2351,7 @@ router.get('/get_supplier.json', function(req, res, next) { // 供应商
     const query = req.query;
     // const query = req.body;
     if (query.id) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.erha_supplier' + ' where ' + `id = ${query.id} and hidden is null`;
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_supplier' + ' where ' + `id = ${query.id}`;
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           res.send({
