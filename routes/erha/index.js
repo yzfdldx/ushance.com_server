@@ -337,7 +337,7 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
               }
             })
           } else if (query.type) {
-            var select2 = 'select ' + '*' + ' from ' + 'my_web.erha_shop' + ' where ' + `type = "${query.type}" and hidden is null`;
+            var select2 = 'select ' + '*' + ' from ' + 'my_web.erha_shop' + ' where ' + `type = "${query.type}" and hidden is null order by order_id desc , id`;
           }
           if (onoff) {
             MQ_ok(select2, res, (result2) => {
@@ -2830,6 +2830,7 @@ router.get('/order_ok.json', async function(req, res, next) { // 订单结算成
 });
 
 // 获取用户二维码
+// var gm = require('gm')
 router.get('/get_use_code.json', async function(req, res, next) {
   try {
     const query = req.query;
@@ -2837,6 +2838,26 @@ router.get('/get_use_code.json', async function(req, res, next) {
       var img = qr.image(`https://www.ushance.com/?type=erha*use_${query.user_id}`,{size :10});
       res.writeHead(200, {'Content-Type': 'image/png'});
       img.pipe(res);
+      // gm().in('-page', '+0+0')//-page是设置图片位置，所有的图片以左上为原点，向右、向下为正
+      //     .in('/img/goods/1.png')//底图，到这里第一张图就设置完了，要先设置参数，再设置图片
+      //     .in('-resize', '200x200')//设置微信二维码图片的大小（等比缩放）
+      //     .in('-page', '+100+100')//设置微信二维码图片的位置
+      //     .in(img)//二维码图
+      //     .in('-page', '+75+75')//logo图位置
+      //     .in('/img/goods/2.png')//logo图
+      //     .mosaic()//图片合成
+      //     .write('Images/final.png', function (err) {//图片写入
+      //         if (!!err) {
+      //             console.log(err);
+      //         } else {
+      //             console.log('ok');
+      //         }});
+      // gm(img)
+      //   .resize('200', '200')
+      //   .stream(function (err, stdout, stderr) {
+      //     var writeStream = fs.createWriteStream('/resized.png');
+      //     stdout.pipe(writeStream);
+      //   });
     }
   } catch (error) {
     res.send({
