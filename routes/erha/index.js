@@ -2345,6 +2345,80 @@ router.post('/code.json', function(req, res, next) { // 加邀请码 ---- ???
     });
   }
 });
+/* 供应商 */
+router.get('/get_supplier.json', function(req, res, next) { // 供应商
+  try {
+    const query = req.query;
+    // const query = req.body;
+    if (query.id) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_supplier' + ' where ' + `id = ${query.id} and hidden is null`;
+      MQ_ok(select, res, (result) => {
+        if (result && result[0]) {
+          res.send({
+            result: 'succeed',
+            data: {
+              ...result[0],
+              creat_time: DFormat(result[0].creat_time)
+            },
+          });
+        } else {
+          res.send({
+            result: 'succeed',
+            data: {},
+          });
+        }
+      })
+    } else if (query.user_id && query.trans) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and trans = ${query.trans} and hidden is null order by id desc`;
+      MQ_ok(select, res, (result) => {
+        if (result) {
+          res.send({
+            result: 'succeed',
+            data: result.map(e => ({
+              ...e,
+              creat_time: DFormat(e.creat_time)
+            })),
+          });
+        } else {
+          res.send({
+            result: 'succeed',
+            data: [],
+          });
+        }
+      })
+    } else if (query.user_id) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and hidden is null order by id desc`;
+      MQ_ok(select, res, (result) => {
+        if (result) {
+          res.send({
+            result: 'succeed',
+            data: result.map(e => ({
+              ...e,
+              creat_time: DFormat(e.creat_time)
+            })),
+          });
+        } else {
+          res.send({
+            result: 'succeed',
+            data: [],
+          });
+        }
+      })
+    } else {
+      res.send({
+        result: 'error',
+        errorCode: 304,
+        message: '请选择查询类型',
+      });
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
 
 // 支付
 const tenpay = require('tenpay');
