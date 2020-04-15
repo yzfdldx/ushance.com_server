@@ -363,7 +363,7 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                 })
                 res.send({
                   result: 'succeed',
-                  data: query.search ? Arr.filter(e => e.name.includes(query.search)) : Arr,
+                  data: query.search ? Arr.filter(e => e.name && e.name.includes(query.search)) : Arr,
                 });
               } else {
                 res.send({
