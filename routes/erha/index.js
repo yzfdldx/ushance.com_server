@@ -350,16 +350,20 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     }
                   });
                   let media = [];
+                  let operation_proces = [];
+                  let pay_oder = [];
                   try {
                     media = e.media ? JSON.parse(e.media) : [];
+                    operation_proces = e.operation_proces ? JSON.parse(e.operation_proces) : [];
+                    pay_oder = e.pay_oder ? JSON.parse(e.pay_oder) : [];
                   } catch (error) {
                     //
                   }
                   return ({
                     ...e,
                     media: media,
-                    operation_proces: e.operation_proces ? JSON.parse(e.operation_proces) : [],
-                    pay_oder: e.pay_oder ? JSON.parse(e.pay_oder) : [],
+                    operation_proces: operation_proces,
+                    pay_oder: pay_oder,
                     pre_sale_time: e.pre_sale_time ? DFormat(e.pre_sale_time) : null,
                     count_down: e.count_down ? DFormat(e.count_down) : null,
                     show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
