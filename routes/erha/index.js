@@ -349,9 +349,15 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                       num += parseInt(e2.shop_num);
                     }
                   });
+                  let media = [];
+                  try {
+                    media = e.media ? JSON.parse(e.media) : [];
+                  } catch (error) {
+                    //
+                  }
                   return ({
                     ...e,
-                    media: e.media ? JSON.parse(e.media) : [],
+                    media: media,
                     operation_proces: e.operation_proces ? JSON.parse(e.operation_proces) : [],
                     pay_oder: e.pay_oder ? JSON.parse(e.pay_oder) : [],
                     pre_sale_time: e.pre_sale_time ? DFormat(e.pre_sale_time) : null,
