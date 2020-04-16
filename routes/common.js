@@ -300,13 +300,13 @@ const see_edit = ({
             // console.log('see_edit3', result2);
             succeed(result2)
           })
-        } else {
+        } else if (res) {
           res.send({
             result: 'error',
             message: `不存在${edit}`,
           });
         }
-      } else {
+      } else if (res) {
         res.send({
           result: 'error',
           message: `不存在${id}`,
