@@ -250,6 +250,41 @@ router.get('/recom_message.json', function(req, res, next) { // 新闻简报
     });
   }
 });
+/* 文章 */
+router.get('/recom_article.json', function(req, res, next) { // 文章
+  try {
+    const query = req.query;
+    // const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_list' + ' where ' + `id = 6`;
+      MQ_ok(select, res, (result) => {
+        if (result && result[0].data) {
+          const Arr = [];
+          try {
+            Arr = JSON.parse(result[0].data);
+          } catch (error) {
+            //
+          }
+          res.send({
+            result: 'succeed',
+            data: Arr[query.id],
+          });
+        } else {
+          res.send({
+            result: 'error',
+            message: '无数据',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
 /* 分类 */
 router.get('/list.json', function(req, res, next) { // 分类
   try {
