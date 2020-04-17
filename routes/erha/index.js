@@ -259,7 +259,7 @@ router.get('/recom_article.json', function(req, res, next) { // 文章
       var select = 'select ' + '*' + ' from ' + 'my_web.erha_list' + ' where ' + `id = 6`;
       MQ_ok(select, res, (result) => {
         if (result && result[0].data) {
-          const Arr = [];
+          let Arr = [];
           try {
             Arr = JSON.parse(result[0].data);
           } catch (error) {
