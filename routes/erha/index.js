@@ -1083,12 +1083,6 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             });
                           }
                         })
-                        // setTimeout(() => {
-                        //   res.send({
-                        //     result: 'succeed',
-                        //     data: result_a,
-                        //   });
-                        // }, 20000)
                       } else {
                         res.send({
                           result: 'error',
