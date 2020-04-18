@@ -642,11 +642,11 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                     const acount = JSON.stringify({
                       price: price.toFixed(2),
                       supplier_price: supplier_price.toFixed(2), // 成本
-                      self_mention_price: self_mention_price.toFixed(2), // 自提点
+                      self_mention_price: self_mention_price.toFixed(2), // 自提点提货资金
                       share_price: share_price.toFixed(2), // 分享
                       earning_price: earning_price.toFixed(2), // 下线
                       profit: profit.toFixed(2), // 利润
-                      registration_p: registration_p,
+                      registration_p: registration_p.toFixed(2), // 自提点获得资金
                     });
                     const acount_list = JSON.stringify({
                       supplier_id: shop.supplier_id,
