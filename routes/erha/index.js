@@ -638,6 +638,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                     const share_price = (query.share_id ? price * parseFloat(shop.share_proportion) : 0);
                     const earning_price = (up_onoff && query.share_type !== 'mention' ? price * parseFloat(shop.earning_proportion) : 0);
                     const profit = (price - supplier_price - self_mention_price - share_price - earning_price);
+                    let registration_p = self_mention_price + (query.share_type === 'mention' ? share_price : 0) + earning_price;
                     const acount = JSON.stringify({
                       price: price.toFixed(2),
                       supplier_price: supplier_price.toFixed(2), // 成本
@@ -645,6 +646,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                       share_price: share_price.toFixed(2), // 分享
                       earning_price: earning_price.toFixed(2), // 下线
                       profit: profit.toFixed(2), // 利润
+                      registration_p: registration_p,
                     });
                     const acount_list = JSON.stringify({
                       supplier_id: shop.supplier_id,
@@ -781,7 +783,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                         // let supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price)); // 供货商
                         // let registration_p = (self_mention_proportion + (!query.share_id && up_onoff ? earning_proportion : 0) - (query.share_id ? share_proportion : 0))
                         // let profit = (order_price - supplier_price - registration_p)
-                        let registration_p = self_mention_price + (query.share_type === 'mention' ? share_price : 0) + earning_price;
+                        // let registration_p = self_mention_price + (query.share_type === 'mention' ? share_price : 0) + earning_price;
                         const Time = DFormat();
                         if (true) { // 修改自提点
                           let order_list = self_mention.order_list ? JSON.parse(self_mention.order_list) : [];
@@ -792,8 +794,8 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           let booth_money = (self_mention.booth_money ? parseFloat(self_mention.booth_money) : 0);
                           let offline_money = (self_mention.offline_money ? parseFloat(self_mention.offline_money) : 0);
                           let product_money = (self_mention.product_money ? parseFloat(self_mention.product_money) : 0);
-                          let account = self_mention.account ? JSON.parse(self_mention.account) : [];
-                          account.push({
+                          // let account = self_mention.account ? JSON.parse(self_mention.account) : [];
+                          let account = ({
                             message: '订单',
                             type: 'add', // 自提点新增
                             pay: '用户', // 有ushance支付
@@ -833,8 +835,8 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             order_list = JSON.stringify(order_list)
                             let money = edit.money ? parseFloat(edit.money) : 0;
                             let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
-                            let account = edit.account ? JSON.parse(edit.account) : [];
-                            account.push({
+                            // let account = edit.account ? JSON.parse(edit.account) : [];
+                            let account = ({
                               message: '订单',
                               type: 'add', // 自提点新增
                               pay: '用户', // 有ushance支付
@@ -893,8 +895,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           table: 'my_web.erha_use',
                           edit: ['account', 'order_list'],
                           edit_fn: (edit) => {
-                            let account = edit.account ? JSON.parse(edit.account) : [];
-                            account.push({
+                            let account = ({
                               message: '订单',
                               type: 'del', // 自提点新增
                               pay: '用户', // 有ushance支付
@@ -923,8 +924,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             table: 'my_web.erha_use',
                             edit: ['money', 'account', 'order_list', 'total_money'],
                             edit_fn: (edit) => {
-                              let account = edit.account ? JSON.parse(edit.account) : [];
-                              account.push({
+                              let account = ({
                                 message: '订单分享',
                                 type: 'add', // 自提点新增
                                 pay: '用户', // 有ushance支付
@@ -961,57 +961,37 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                 init_value: this_company,
                                 res,
                                 table: 'my_web.erha_company',
-                                edit: ['order_list', 'income_list', 'income_money', 'pay_list', 'pay_money', 'profit', 'accu_profit', 'accu_pay', 'accu_income'],
+                                edit: ['income_money', 'list', 'pay_money', 'profit', 'accu_profit', 'accu_pay', 'accu_income'],
                                 edit_fn: (edit) => {
-                                  let income_list = [];
+                                  let list = [];
                                   try {
-                                    income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
+                                    list = edit.list ? JSON.parse(edit.list) : [];
                                   } catch (error) {
                                     //
                                   }
-                                  income_list.push({
-                                    message: '订单',
-                                    type: 'add', // 自提点新增
-                                    pay: '用户', // 有ushance支付
+                                  list.push({
                                     money: price.toFixed(2),
-                                    profit: profit.toFixed(2),
-                                    time: Time
-                                  })
-                                  income_list = JSON.stringify(income_list)
-                                  let pay_list = [];
-                                  try {
-                                    pay_list = edit.pay_list ? JSON.parse(edit.pay_list) : [];
-                                  } catch (error) {
-                                    //
-                                  }
-                                  pay_list.push({
-                                    message: '订单',
-                                    type: 'del', // 自提点新增
-                                    pay: '用户', // 有ushance支付
-                                    money: (supplier_price + registration_p).toFixed(2),
                                     supplier_price: supplier_price.toFixed(2),
                                     registration_p: registration_p.toFixed(2),
-                                    time: Time,
                                     self_mention_price: self_mention_price.toFixed(2),
                                     share_price: share_price.toFixed(2),
-                                    earning_price: earning_price.toFixed(2)
+                                    earning_price: earning_price.toFixed(2),
+                                    profit: profit.toFixed(2),
                                   })
-                                  pay_list = JSON.stringify(pay_list)
+                                  list = JSON.stringify(list)
                                   //
-                                  let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
-                                  order_list.push(result_a.insertId)
-                                  order_list = JSON.stringify(order_list)
+                                  // let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
+                                  // order_list.push(result_a.insertId)
+                                  // order_list = JSON.stringify(order_list)
                                   // console.log(order_list)
                                   return {
-                                    order_list,
-                                    income_list,
                                     income_money: (parseFloat(edit.income_money) + price).toFixed(2),
-                                    pay_list,
+                                    list,
                                     pay_money: (parseFloat(edit.pay_money) + supplier_price + registration_p).toFixed(2),
                                     profit: (parseFloat(edit.profit) + profit).toFixed(2),
                                     accu_profit: (parseFloat(edit.accu_profit) + profit).toFixed(2),
                                     accu_pay: (parseFloat(edit.accu_pay) + supplier_price + registration_p).toFixed(2),
-                                    accu_income: (parseFloat(edit.accu_income) + price).toFixed(2)
+                                    accu_income: (parseFloat(edit.accu_income) + price).toFixed(2),
                                   }
                                 },
                                 succeed: (result3) => {
@@ -1030,28 +1010,15 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                 accu_pay += ee.pay_money ? parseFloat(ee.pay_money) : 0;
                                 accu_income += ee.income_money ? parseFloat(ee.income_money) : 0;
                               });
-                              let income_list = [];
-                              income_list.push({
-                                message: '订单',
-                                type: 'add', // 自提点新增
-                                pay: '用户', // 有ushance支付
-                                money: price.toFixed(2),
-                                profit: profit.toFixed(2),
-                                time: Time
-                              })
-                              income_list = JSON.stringify(income_list)
                               let pay_list = [];
                               pay_list.push({
-                                message: '订单',
-                                type: 'del', // 自提点新增
-                                pay: '用户', // 有ushance支付
-                                money: (supplier_price + registration_p).toFixed(2),
+                                money: price.toFixed(2),
                                 supplier_price: supplier_price.toFixed(2),
                                 registration_p: registration_p.toFixed(2),
-                                time: Time,
                                 self_mention_price: self_mention_price.toFixed(2),
                                 share_price: share_price.toFixed(2),
-                                earning_price: earning_price.toFixed(2)
+                                earning_price: earning_price.toFixed(2),
+                                profit: profit.toFixed(2),
                               })
                               pay_list = JSON.stringify(pay_list)
                               //
@@ -1065,22 +1032,12 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   defaultSet: true,
                                 },
                                 {
-                                  key: 'order_list',
-                                  default: order_list,
-                                  defaultSet: true,
-                                },
-                                {
-                                  key: 'income_list',
-                                  default: income_list,
-                                  defaultSet: true,
-                                },
-                                {
                                   key: 'income_money',
                                   default: price.toFixed(2),
                                   defaultSet: true,
                                 },
                                 {
-                                  key: 'pay_list',
+                                  key: 'list',
                                   default: pay_list,
                                   defaultSet: true,
                                 },
