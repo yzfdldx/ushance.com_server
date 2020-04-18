@@ -952,18 +952,23 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                         // 公司
                         const this_date = DFormat('', 'date')
                         var select_company = 'select ' + '*' + ' from ' + 'my_web.erha_company' + ' order by id desc';
-                        MQ_ok(select_company, null, (result_company) => {
+                        MQ_ok(select_company, res, (result_company) => {
                           if (result_company) {
                             const this_company = result_company.find(e => e.date === this_date);
                             if (this_company) {
                               see_edit({
                                 id: this_company.id,
                                 init_value: this_company,
-                                res: null,
+                                res,
                                 table: 'my_web.erha_company',
                                 edit: ['order_list', 'income_list', 'income_money', 'pay_list', 'pay_money', 'profit', 'accu_profit', 'accu_pay', 'accu_income'],
                                 edit_fn: (edit) => {
-                                  let income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
+                                  let income_list = [];
+                                  try {
+                                    income_list = edit.income_list ? JSON.parse(edit.income_list) : [];
+                                  } catch (error) {
+                                    //
+                                  }
                                   income_list.push({
                                     message: '订单',
                                     type: 'add', // 自提点新增
@@ -973,7 +978,12 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                     time: Time
                                   })
                                   income_list = JSON.stringify(income_list)
-                                  let pay_list = edit.pay_list ? JSON.parse(edit.pay_list) : [];;
+                                  let pay_list = [];
+                                  try {
+                                    pay_list = edit.pay_list ? JSON.parse(edit.pay_list) : [];
+                                  } catch (error) {
+                                    //
+                                  }
                                   pay_list.push({
                                     message: '订单',
                                     type: 'del', // 自提点新增
@@ -991,7 +1001,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
                                   order_list.push(result_a.insertId)
                                   order_list = JSON.stringify(order_list)
-                                  console.log(order_list)
+                                  // console.log(order_list)
                                   return {
                                     order_list,
                                     income_list,
@@ -1005,12 +1015,10 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   }
                                 },
                                 succeed: (result3) => {
-                                  setTimeout(() => {
-                                    res.send({
-                                      result: 'succeed',
-                                      data: result_a,
-                                    });
-                                  }, 200)
+                                  res.send({
+                                    result: 'succeed',
+                                    data: result_a,
+                                  });
                                 },
                               })
                             } else {
@@ -1104,13 +1112,11 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               ]
                               let str = checkAddLink(Arr, query);
                               var select_add_company = `INSERT INTO my_web.erha_company ` + str;
-                              MQ_ok(select_add_company, null, (result_add_company) => {
-                                setTimeout(() => {
-                                  res.send({
-                                    result: 'succeed',
-                                    data: result_a,
-                                  });
-                                }, 200)
+                              MQ_ok(select_add_company, res, (result_add_company) => {
+                                res.send({
+                                  result: 'succeed',
+                                  data: result_a,
+                                });
                               })
                             }
                           } else {
@@ -1624,7 +1630,7 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                   const Time = DFormat();
                   const sign_in = JSON.stringify([{
                     time: Time,
-                    type: '注册'
+                    type: '注册',
                   }]);
                   let money = 0;
                   let total_money = 0;
@@ -1743,20 +1749,20 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                             let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
                             let account = edit.account ? JSON.parse(edit.account) : [];
                             let code_use = edit.code_use ? JSON.parse(edit.code_use) : [];
-                            // account.push({
-                            //   message: '新人奖励',
-                            //   type: 'add', // 自提点新增
-                            //   pay: 'ushance', // 有ushance支付
-                            //   money: '1.00',
-                            //   time: Time
-                            // })
+                            account.push({
+                              message: '新人奖励',
+                              type: 'add', // 自提点新增
+                              pay: 'ushance', // 有ushance支付
+                              money: '0.20',
+                              time: Time
+                            })
                             account = JSON.stringify(account);
                             code_use.push(back_data.id);
                             code_use = JSON.stringify(code_use);
                             return {
-                              money: (money + 0).toFixed(2),
-                              total_money: (total_money + 0).toFixed(2),
-                              extract_money: (extract_money + 0).toFixed(2),
+                              money: (money + 0.2).toFixed(2),
+                              total_money: (total_money + 0.2).toFixed(2),
+                              extract_money: (extract_money + 0.2).toFixed(2),
                               account,
                               code_use
                             }
@@ -1785,16 +1791,16 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                               message: '新人奖励',
                               type: 'add', // 自提点新增
                               pay: 'ushance', // 有ushance支付
-                              money: '1.00',
+                              money: '0.20',
                               time: Time
                             })
                             account = JSON.stringify(account);
                             online_list.push(back_data.id);
                             online_list = JSON.stringify(online_list);
                             return {
-                              money: (money + 0).toFixed(2),
-                              extract_money: (extract_money + 0).toFixed(2),
-                              total_money: (total_money + 0).toFixed(2),
+                              money: (money + 0.2).toFixed(2),
+                              extract_money: (extract_money + 0.2).toFixed(2),
+                              total_money: (total_money + 0.2).toFixed(2),
                               account,
                               online_list
                             }
