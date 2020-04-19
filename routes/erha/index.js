@@ -1736,9 +1736,10 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                             let money = edit.money ? parseFloat(edit.money) : 0;
                             let total_money = edit.total_money ? parseFloat(edit.total_money) : 0;
                             let extract_money = edit.extract_money ? parseFloat(edit.extract_money) : 0;
-                            let account = edit.account ? JSON.parse(edit.account) : [];
+
+                            // let account = edit.account ? JSON.parse(edit.account) : [];
                             let online_list = edit.online_list ? JSON.parse(edit.online_list) : [];
-                            account.push({
+                            let account = ({
                               message: '新人奖励',
                               type: 'add', // 自提点新增
                               pay: 'ushance', // 有ushance支付
