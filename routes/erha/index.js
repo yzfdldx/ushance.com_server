@@ -2096,7 +2096,7 @@ router.post('/add_shop_card.json', function(req, res, next) { // 加入购物车
             },
             {
               key: 'shop_num',
-              default: 1,
+              default: query.shop_num ? query.shop_num : 1,
               defaultSet: true,
             },
             {
