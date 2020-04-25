@@ -3,6 +3,7 @@ var router = express.Router();
 var fs = require('fs');
 var qr = require('qr-image');
 var path = require('path');
+var https = require('https');
 const {
   download,
   DFormat, DFormat_data, DFormat_code,
@@ -856,7 +857,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           },
                         })
                         // 修改商品
-                        see_edit({
+                        see_edit({ // 加限制了
                           id: shop.id,
                           init_value: shop,
                           res: null,
@@ -864,6 +865,13 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           edit: ['purchase_record', 'amount', 'sale_amount', 'order_list'],
                           edit_fn: (edit) => {
                             let purchase_record = edit.purchase_record ? JSON.parse(edit.purchase_record) : [];
+                            if (purchase_record.length === 5) {
+                              purchase_record.shift();
+                            } else if (purchase_record.length > 5) {
+                              purchase_record.shift();
+                              purchase_record.shift();
+                              purchase_record.shift();
+                            }
                             purchase_record.push({
                               id: query.use_id,
                               num: parseFloat(query.shop_num),
@@ -872,6 +880,13 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             })
                             purchase_record = JSON.stringify(purchase_record)
                             let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
+                            if (order_list.length === 50) {
+                              purchase_record.shift();
+                            } else if (order_list.length > 50) {
+                              order_list.shift();
+                              order_list.shift();
+                              order_list.shift();
+                            }
                             order_list.push(result_a.insertId)
                             order_list = JSON.stringify(order_list)
                             let amount = edit.amount ? parseFloat(edit.amount) : 0;
@@ -895,7 +910,15 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                           table: 'my_web.erha_use',
                           edit: ['account', 'order_list'],
                           edit_fn: (edit) => {
-                            let account = ({
+                            let account = edit.account ? JSON.parse(edit.account) : [];
+                            if (account.length === 10) {
+                              account.shift();
+                            } else if (account.length > 10) {
+                              account.shift();
+                              account.shift();
+                              account.shift();
+                            }
+                            account.push({
                               message: '订单',
                               type: 'del', // 自提点新增
                               pay: '用户', // 有ushance支付
@@ -904,6 +927,13 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             })
                             account = JSON.stringify(account)
                             let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
+                            if (order_list.length === 50) {
+                              order_list.shift();
+                            } else if (order_list.length > 50) {
+                              order_list.shift();
+                              order_list.shift();
+                              order_list.shift();
+                            }
                             order_list.push(result_a.insertId)
                             order_list = JSON.stringify(order_list)
                             return {
@@ -924,7 +954,15 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                             table: 'my_web.erha_use',
                             edit: ['money', 'account', 'order_list', 'total_money'],
                             edit_fn: (edit) => {
-                              let account = ({
+                              let account = edit.account ? JSON.parse(edit.account) : [];
+                              if (account.length === 10) {
+                                account.shift();
+                              } else if (account.length > 10) {
+                                account.shift();
+                                account.shift();
+                                account.shift();
+                              }
+                              account.push({
                                 message: '订单分享',
                                 type: 'add', // 自提点新增
                                 pay: '用户', // 有ushance支付
@@ -933,6 +971,13 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                               })
                               account = JSON.stringify(account)
                               let order_list = edit.order_list ? JSON.parse(edit.order_list) : [];
+                              if (order_list.length === 50) {
+                                order_list.shift();
+                              } else if (order_list.length > 50) {
+                                order_list.shift();
+                                order_list.shift();
+                                order_list.shift();
+                              }
                               order_list.push(result_a.insertId)
                               order_list = JSON.stringify(order_list)
                               let money = edit.money ? parseFloat(edit.money) : 0;
@@ -966,6 +1011,13 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                                   let list = [];
                                   try {
                                     list = edit.list ? JSON.parse(edit.list) : [];
+                                    if (list.length === 20) {
+                                      list.shift();
+                                    } else if (list.length > 20) {
+                                      list.shift();
+                                      list.shift();
+                                      list.shift();
+                                    }
                                   } catch (error) {
                                     //
                                   }
@@ -1553,7 +1605,14 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
                   if (Item.money_cart) {
                     Item.money_cart = JSON.parse(Item.money_cart);
                   }
-                  const sign_in1 = Item.sign_in ? JSON.parse(Item.sign_in) : []
+                  const sign_in1 = Item.sign_in ? JSON.parse(Item.sign_in) : [];
+                  if (sign_in1.length === 10) {
+                    sign_in1.shift();
+                  } else if (sign_in1.length > 10) {
+                    sign_in1.shift();
+                    sign_in1.shift();
+                    sign_in1.shift();
+                  }
                   const time = DFormat();
                   const sign_in = JSON.stringify([
                     ...sign_in1,
@@ -2943,6 +3002,353 @@ router.get('/get_use_code.json', async function(req, res, next) {
       message: '代码出错了',
     });
   }
+});
+
+let print_code = {
+  "2020-04-25": "177867da8c2f49e8baa63304a231bf00"
+}; // 0d7e2424fe8e49b3a0dba3df5cc78367
+const print_token_Fn = (data, back) => {
+  const crypto = require('crypto');
+  var obj = crypto.createHash('md5');
+  // 可多次调用 client_id timestamp client_secret 应用密钥
+  const client_id = '1060686196';
+  const timestamp = `${new Date().getTime()}`;
+  const client_secret = '4042308928f2d4319872e1a6dd823c34';
+  obj.update(client_id);
+  obj.update(timestamp);
+  obj.update(client_secret);
+  const sign = obj.digest('hex');
+  let postData = JSON.stringify({
+    client_id, // 开发者的应用ID
+    grant_type: 'client_credentials', // 	授与方式
+    scope: 'all', // 授权权限
+    id: '3F2504E0-4F89-11D3-9A0C-0305E82C3301', // UUID4 详见API文档列表
+    timestamp,
+    sign: sign, // 签名
+  })
+  let options = {
+    hostname:'open-api.10ss.net',
+    path:'/oauth/oauth',
+    method:'POST',
+    headers:{
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    }
+  }
+  const DateTime = DFormat(null, 'date');
+  if (!print_code[DateTime]) {
+    let httpsReq = https.request(options, httpsRes => {
+      let dd = '';
+      httpsRes.on('data', secCheck => {
+        dd += secCheck;
+      });
+      httpsRes.on('end', secCheck => {
+        let Data = null;
+        try {
+          Data = JSON.parse(dd);
+        } catch (error) {
+          
+        }
+        if (!Data || !Data.body || !Data.body.access_token) {
+          back({
+            result: 'error',
+            data: Data,
+          })
+          return;
+        }
+        print_code[DateTime] = Data.body.access_token;
+        print_Fn(data, client_id, timestamp, sign, Data.body.access_token, (val) => {
+          back(val)
+        })
+      })
+      httpsRes.on('error', err => {
+        back({
+          result: 'error',
+          data: '',
+        })
+      });
+    });
+    httpsReq.on('error', err => {
+      back({
+        result: 'error',
+        data: '',
+      })
+    })
+    httpsReq.write(postData);
+    httpsReq.end();
+  } else {
+    print_Fn(data, client_id, timestamp, sign, print_code[DateTime], (val) => {
+      back(val)
+    })
+    // back({
+    //   result: 'succeed',
+    //   DateTime,
+    //   print_code,
+    // })
+  }
+}
+const print_Fn = (value, client_id, timestamp, sign, access_token, back) => {
+  const Json = {
+    shop: '白菜[5]1份，萝卜[21]3斤',
+    price: '￥322.21',
+    self: '地址：杭州XX店[12]',
+    time: `${DFormat()}`
+  }
+  // const content = '<MS>1,2</MS><FB>订单号：1</FB><table><tr><td>商品</td><td>数量</td><td>价格</td><td>地址</td></tr></table>'
+  const content = `<MS>1,2</MS>`+
+        `@@2<FS2><center>***# 雪又精选***</center></FS2>` +
+        `<FS2><center>---已在线支付---</center></FS2>` +
+        `<FS2><center>---------------</center></FS2>` +
+        `<LR>[下单时间],${Json.time}</LR>`+
+        `<center><FS2>-----商品-----</FS2></center>` +
+        `<LR>白菜(斤/份),X1 ￥22.32</LR>`+
+        `<LR>萝卜(个/份),X3 ￥3.00</LR>`+
+        `<center><FS2>--------------</FS2></center>` +
+        `<LR>配送费,￥0.00</LR>`+
+        `<center><FS2>-------------</FS2></center>` +
+        `<FB><LR>总计：,${Json.price}</LR></FB>`+
+        `<LR>地址,杭州XX店</LR>`+
+        `<LR>收货人,李**</LR>`+
+        `<LR>手机,185***</LR>`+
+        `<center><FS2>--------------</FS2></center>` +
+        `<FS2><center>*****进货单*****</center></FS2>` +
+        `<LR>订单号,[21,34]</LR>`+
+        `<LR>白菜[1](斤/份),X1</LR>`+
+        `<LR>萝卜[21](个/份),X3</LR>`+
+        `<LR>自提点[12],杭州XX店</LR>`+
+        `<LR>用户,李**|188***|[1]</LR>`+
+        `<LR>总计：,${Json.price}</LR>` +
+        `@@2<FS2><center>****# 完****</center></FS2>`;
+  let postData = JSON.stringify({
+    client_id, // 开发者的应用ID
+    access_token: access_token, // 授权的token 必要参数
+    machine_code: '4004658557', // 易联云打印机终端号
+    content: content, // 打印内容
+    origin_id: '323xasxas3223xasx2', // 商户系统内部订单号
+    id: '3F2504E0-4F89-11D3-9A0C-0305E82C3301', // UUID4 详见API文档列表
+    timestamp,
+    sign: sign, // 签名
+  })
+  let options ={
+    hostname:'open-api.10ss.net',
+    path:'/print/index',
+    method:'POST',
+    headers:{
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    }
+  }
+  let httpsReq = https.request(options, httpsRes => {
+    let dd = '';
+    httpsRes.on('data', secCheck => {
+      dd += secCheck;
+    });
+    httpsRes.on('end', secCheck => {
+      let Data = null;
+      try {
+        Data = JSON.parse(dd);
+      } catch (error) {
+        
+      }
+      if (!Data) {
+        back({
+          result: 'error',
+          data: '',
+        })
+        return;
+      }
+      back({
+        result: 'succeed',
+        postData: JSON.parse(postData),
+        dd: Data,
+        access_token,
+        print_code,
+      })
+    })
+    httpsRes.on('error', err => {
+      back({
+        result: 'error',
+        data: '',
+      })
+    });
+  });
+  httpsReq.on('error', err => {
+    back({
+      result: 'error',
+      data: '',
+    })
+  })
+  httpsReq.write(postData);
+  httpsReq.end();
+}
+
+// 小票
+router.get('/print_code.json', async function(req, res, next) {
+  const crypto = require('crypto');
+  var obj = crypto.createHash('md5');
+  // 可多次调用 client_id timestamp client_secret 应用密钥
+  const client_id = '1060686196';
+  const timestamp = `${new Date().getTime()}`;
+  const client_secret = '4042308928f2d4319872e1a6dd823c34';
+  obj.update(client_id);
+  obj.update(timestamp);
+  obj.update(client_secret);
+  const sign = obj.digest('hex');
+  let postData = JSON.stringify({
+    client_id, // 开发者的应用ID
+    grant_type: 'client_credentials', // 	授与方式
+    scope: 'all', // 授权权限
+    id: '3F2504E0-4F89-11D3-9A0C-0305E82C3301', // UUID4 详见API文档列表
+    timestamp,
+    sign: sign, // 签名
+  })
+  let options ={
+    hostname:'open-api.10ss.net',
+    path:'/oauth/oauth',
+    method:'POST',
+    headers:{
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    }
+  }
+  // res.send({
+  //   result: 'succeed',
+  //   data: options,
+  //   postData: JSON.parse(postData),
+  // });
+  let httpsReq = https.request(options, httpsRes => {
+    let dd = '';
+    httpsRes.on('data', secCheck => {
+      dd += secCheck;
+    });
+    httpsRes.on('end', secCheck => {
+      let Data = null;
+      try {
+        Data = JSON.parse(dd);
+      } catch (error) {
+        
+      }
+      if (Data) {
+        res.send({
+          result: 'error',
+          data: Data,
+        });
+        return;
+      }
+      const Json = {
+        shop: '白菜[5]1份，萝卜[21]3斤',
+        price: '￥322.21',
+        self: '地址：杭州XX店[12]',
+        time: `${DFormat()}`
+      }
+      // const content = '<MS>1,2</MS><FB>订单号：1</FB><table><tr><td>商品</td><td>数量</td><td>价格</td><td>地址</td></tr></table>'
+      // const content = `<MS>1,2</MS>`+
+      //       `@@2<FS2><center>***# 雪又精选***</center></FS2>` +
+      //       `<FS2><center>---已在线支付---</center></FS2>` +
+      //       `<FS2><center>-----------------</center></FS2>` +
+      //       `<LR>[下单时间],${Json.time}</LR>`+
+      //       `<center><FS2>--------商品--------</FS2></center>` +
+      //       `<LR>白菜,1斤X1  ￥22.32</LR>`+
+      //       `<LR>萝卜,1个X3  ￥3.00</LR>`+
+      //       `<center><FS2>-----------------</FS2></center>` +
+      //       `<LR>配送费,￥0.00</LR>`+
+      //       `<center><FS2>-----------------</FS2></center>` +
+      //       `<FB><LR>总计：,${Json.price}</LR></FB>`+
+      //       `<LR>地址,杭州XX店</LR>`+
+      //       `<LR>收货,李**:185***</LR>`+
+      //       `<center><FS2>-----------------</FS2></center>` +
+      //       `<QR>${Json.price}</QR>` +
+      //       `<center><FS2>-----------------</FS2></center>` +
+      //       `<FS2><center>***进货单***</center></FS2>` +
+      //       `<LR>订单号,[21,34]</LR>`+
+      //       `<LR>白菜[1],1斤X1</LR>`+
+      //       `<LR>萝卜[21],1个X3</LR>`+
+      //       `<LR>自提点[12],杭州XX店</LR>`+
+      //       `<LR>用户,李**|188***|[1]</LR>`+
+      //       `<LR>总计：,${Json.price}</LR>` +
+      //       `@@2<FS2><center>***# 完***</center></FS2>`;
+      let postData = JSON.stringify({
+        client_id, // 开发者的应用ID
+        access_token: Data.body.access_token, // 授权的token 必要参数
+        machine_code: '4004658557', // 易联云打印机终端号
+        content: '', // 打印内容
+        origin_id: '323xasxas3223xasx2', // 商户系统内部订单号
+        id: '3F2504E0-4F89-11D3-9A0C-0305E82C3301', // UUID4 详见API文档列表
+        timestamp,
+        sign: sign, // 签名
+      })
+      let options ={
+        hostname:'open-api.10ss.net',
+        path:'/print/index',
+        method:'POST',
+        headers:{
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }
+      let httpsReq = https.request(options, httpsRes => {
+        let dd = '';
+        httpsRes.on('data', secCheck => {
+          dd += secCheck;
+        });
+        httpsRes.on('end', secCheck => {
+          let Data = null;
+          try {
+            Data = JSON.parse(dd);
+          } catch (error) {
+            
+          }
+          if (!Data) {
+            res.send({
+              result: 'error',
+              data: '',
+            });
+            return;
+          }
+          res.send({
+            result: 'succeed',
+            data: options,
+            postData: JSON.parse(postData),
+            secCheck,
+            dd: Data,
+          });
+        })
+        httpsRes.on('error', err => {
+          res.send({
+            result: 'error',
+            data: '',
+          });
+        });
+      });
+      httpsReq.on('error', err => {
+        res.send({
+          result: 'error',
+          data: '',
+        });
+      })
+      httpsReq.write(postData);
+      httpsReq.end();
+    })
+    httpsRes.on('error', err => {
+      res.send({
+        result: 'error',
+        data: '',
+      });
+    });
+  });
+  httpsReq.on('error', err => {
+    res.send({
+      result: 'error',
+      data: '',
+    });
+  })
+  httpsReq.write(postData);
+  httpsReq.end();
+});
+router.get('/print.json', async function(req, res, next) {
+  print_token_Fn({}, (e) => {
+    res.send(e);
+  })
 });
 
 module.exports = router;
