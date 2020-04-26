@@ -504,9 +504,36 @@ router.post('/edit_shop_card.json', function(req, res, next) { // 编辑购物�
               }
             }
             if (!onoff &&result2) {
-              let order_price = (parseFloat(query.shop_num) * parseFloat(Item.discount_price)).toFixed(2)
+              let price = 0;
+              let acount_screen_selected = [];
+              if (query.shop_screen_selected && Item.screen_selected) { // 商品分不同类型不同的价格
+                const query_screen_selected = [];
+                const shop_screen_selected = [];
+                try {
+                  query_screen_selected = JSON.parse(query.shop_screen_selected);
+                  shop_screen_selected = JSON.parse(Item.screen_selected);
+                } catch (error) {
+                  //
+                }
+                query_screen_selected.forEach(e => {
+                  const shop_find = shop_screen_selected.find(e2 => e2.title === e.title);
+                  if (shop_find && e.num && shop_find.num && parseInt(e.num) <= parseInt(shop_find.num)) { // 商品存在数量足够
+                    const this_price = parseInt(e.num) * parseFloat(shop_find.price);
+                    price += this_price;
+                    acount_screen_selected.push({
+                      title: e.title,
+                      num: e.num,
+                      money: this_price.toFixed(2),
+                    })
+                  }
+                });
+              } else {
+                price = (parseFloat(query.shop_num) * parseFloat(Item.discount_price));
+              }
+              // let order_price = (parseFloat(query.shop_num) * parseFloat(Item.discount_price)).toFixed(2)
               let str = `shop_num = '${query.shop_num}'`;
-              str += `, order_price = '${order_price}'`;
+              str += `, order_price = '${price.toFixed(2)}'`;
+              str += `, screen_selected = '${JSON.stringify(acount_screen_selected)}'`;
               var select = `update my_web.erha_shop_card set ` +
               str +
               ` where id = ${query.id}`;
@@ -609,7 +636,7 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
     const query = req.body;
     if (checkFn(['use_id', 'use_img', 'shop_id', 'self_mention_id', 'shop_num', 'order_name', 'order_phone', 'address'], query, res)) { // note, share_id
       var select = 'select ' + '*' + ' from ' + 'my_web.erha_shop' + ' where ' + `id = ${query.shop_id} and hidden is null`;
-      MQ_ok(select, res, (result) => { // 查询商品
+      MQ_ok(select, res, (result) => { // 查询商品 shop_screen_selected
         if (result && result[0]) {
           const shop = result[0];
           if (!shop.pay_num || parseFloat(shop.pay_num) >= parseFloat(query.shop_num)) {
@@ -632,9 +659,45 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                   }
                   if (!onoff && result2) { // 检验成功开始新增订单
                     const Time = DFormat();
-                    const price = (parseFloat(query.shop_num) * parseFloat(shop.discount_price));
+                    let price = 0;
+                    let supplier_price = 0;
+                    let acount_screen_selected = [];
+                    if (query.shop_screen_selected && shop.screen_selected) { // 商品分不同类型不同的价格
+                      const query_screen_selected = [];
+                      const shop_screen_selected = [];
+                      try {
+                        query_screen_selected = JSON.parse(query.shop_screen_selected);
+                        shop_screen_selected = JSON.parse(shop.screen_selected);
+                      } catch (error) {
+                        //
+                      }
+                      query_screen_selected.forEach(e => {
+                        const shop_find = shop_screen_selected.find(e2 => e2.title === e.title);
+                        if (shop_find && e.num && shop_find.num && parseInt(e.num) <= parseInt(shop_find.num)) { // 商品存在数量足够
+                          const this_price = parseInt(e.num) * parseFloat(shop_find.price);
+                          const this_supplier_price = parseInt(e.num) * parseFloat(shop_find.supplier_price);
+                          price += this_price;
+                          supplier_price += this_supplier_price;
+                          acount_screen_selected.push({
+                            title: e.title,
+                            num: e.num,
+                            money: this_price.toFixed(2),
+                            supplier_money: this_supplier_price.toFixed(2)
+                          })
+                        }
+                      });
+                    } else {
+                      price = (parseFloat(query.shop_num) * parseFloat(shop.discount_price));
+                      supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price ? shop.supplier_price : 0));
+                    }
+                    if (!price) {
+                      res.send({
+                        result: 'error',
+                        message: '超过商品限购数量',
+                      });
+                      return;
+                    }
                     const up_onoff = code_use.find(e => `${e}` === `${query.use_id}`); // 是不是该自提点的下线
-                    const supplier_price = (parseFloat(query.shop_num) * parseFloat(shop.supplier_price ? shop.supplier_price : 0));
                     const self_mention_price = (price * parseFloat(shop.self_mention_proportion));
                     const share_price = (query.share_id ? price * parseFloat(shop.share_proportion) : 0);
                     const earning_price = (up_onoff && query.share_type !== 'mention' ? price * parseFloat(shop.earning_proportion) : 0);
@@ -659,6 +722,11 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                       {
                         key: 'order_num',
                         default: DFormat_code(query.use_id),
+                        defaultSet: true,
+                      },
+                      {
+                        key: 'screen_selected',
+                        default: JSON.stringify(acount_screen_selected),
                         defaultSet: true,
                       },
                       {
@@ -1798,13 +1866,13 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录|注册
 
                             // let account = edit.account ? JSON.parse(edit.account) : [];
                             let online_list = edit.online_list ? JSON.parse(edit.online_list) : [];
-                            let account = ({
+                            let account = ([{
                               message: '新人奖励',
                               type: 'add', // 自提点新增
                               pay: 'ushance', // 有ushance支付
                               money: '0.20',
                               time: Time
-                            })
+                            }])
                             account = JSON.stringify(account);
                             online_list.push(back_data.id);
                             online_list = JSON.stringify(online_list);
@@ -2137,6 +2205,32 @@ router.post('/add_shop_card.json', function(req, res, next) { // 加入购物车
         if (result && result[0]) {
           const Item = result[0];
           const Time = DFormat();
+          let price = 0;
+          let acount_screen_selected = [];
+          if (query.shop_screen_selected && Item.screen_selected) { // 商品分不同类型不同的价格
+            const query_screen_selected = [];
+            const shop_screen_selected = [];
+            try {
+              query_screen_selected = JSON.parse(query.shop_screen_selected);
+              shop_screen_selected = JSON.parse(Item.screen_selected);
+            } catch (error) {
+              //
+            }
+            query_screen_selected.forEach(e => {
+              const shop_find = shop_screen_selected.find(e2 => e2.title === e.title);
+              if (shop_find && e.num && shop_find.num && parseInt(e.num) <= parseInt(shop_find.num)) { // 商品存在数量足够
+                const this_price = parseInt(e.num) * parseFloat(shop_find.price);
+                price += this_price;
+                acount_screen_selected.push({
+                  title: e.title,
+                  num: e.num,
+                  money: this_price.toFixed(2),
+                })
+              }
+            });
+          } else {
+            price = (parseFloat(query.shop_num) * parseFloat(Item.discount_price));
+          }
           var Arr = [
             {
               key: 'name',
@@ -2146,6 +2240,11 @@ router.post('/add_shop_card.json', function(req, res, next) { // 加入购物车
             {
               key: 'shop_id',
               default: Item.id,
+              defaultSet: true,
+            },
+            {
+              key: 'screen_selected',
+              default: JSON.stringify(acount_screen_selected),
               defaultSet: true,
             },
             {
@@ -2160,7 +2259,7 @@ router.post('/add_shop_card.json', function(req, res, next) { // 加入购物车
             },
             {
               key: 'order_price',
-              default: Item.discount_price,
+              default: price.toFixed(2),
               defaultSet: true,
             },
             {
