@@ -363,6 +363,7 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     count_down_getTime: result2[0].count_down ? new Date(result2[0].count_down).getTime() : null,
                     media: result2[0] && result2[0].media ? JSON.parse(result2[0].media) : [],
                     operation_proces: result2[0] && result2[0].operation_proces ? JSON.parse(result2[0].operation_proces) : [],
+                    screen_selected: result2[0] && result2[0].screen_selected ? JSON.parse(result2[0].screen_selected) : [],
                   },
                 });
               } else {
@@ -404,6 +405,7 @@ router.get('/get_shop.json', function(req, res, next) { // 查询商品
                     count_down: e.count_down ? DFormat(e.count_down) : null,
                     show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
                     show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
+                    screen_selected: e.screen_selected ? JSON.parse(e.screen_selected) : [],
                     order_num: num,
                   })
                 })
