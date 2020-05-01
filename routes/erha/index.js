@@ -484,10 +484,10 @@ router.get('/get_shop_card.json', function(req, res, next) { // 查询购物车
     });
   }
 });
-router.post('/edit_shop_card.json', function(req, res, next) { // 编辑购物车 ???
+router.get('/edit_shop_card.json', function(req, res, next) { // 编辑购物车 ???
   try {
-    // const query = req.query;
-    const query = req.body;
+    const query = req.query;
+    // const query = req.body;
     if (checkFn(['id','user_id', 'shop_id', 'shop_num'], query, res)) {
       var select = 'select ' + '*' + ' from ' + 'my_web.erha_shop' + ' where ' + `id = ${query.shop_id}`;
       MQ_ok(select, res, (result) => {
@@ -509,8 +509,8 @@ router.post('/edit_shop_card.json', function(req, res, next) { // 编辑购物�
               let price = 0;
               let acount_screen_selected = [];
               if (query.shop_screen_selected && Item.screen_selected) { // 商品分不同类型不同的价格
-                const query_screen_selected = [];
-                const shop_screen_selected = [];
+                let query_screen_selected = [];
+                let shop_screen_selected = [];
                 try {
                   query_screen_selected = JSON.parse(query.shop_screen_selected);
                   shop_screen_selected = JSON.parse(Item.screen_selected);
@@ -2210,8 +2210,8 @@ router.post('/add_shop_card.json', function(req, res, next) { // 加入购物车
           let price = 0;
           let acount_screen_selected = [];
           if (query.shop_screen_selected && Item.screen_selected) { // 商品分不同类型不同的价格
-            const query_screen_selected = [];
-            const shop_screen_selected = [];
+            let query_screen_selected = [];
+            let shop_screen_selected = [];
             try {
               query_screen_selected = JSON.parse(query.shop_screen_selected);
               shop_screen_selected = JSON.parse(Item.screen_selected);
