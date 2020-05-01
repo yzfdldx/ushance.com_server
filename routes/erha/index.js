@@ -665,8 +665,8 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                     let supplier_price = 0;
                     let acount_screen_selected = [];
                     if (query.shop_screen_selected && shop.screen_selected) { // 商品分不同类型不同的价格
-                      const query_screen_selected = [];
-                      const shop_screen_selected = [];
+                      let query_screen_selected = [];
+                      let shop_screen_selected = [];
                       try {
                         query_screen_selected = JSON.parse(query.shop_screen_selected);
                         shop_screen_selected = JSON.parse(shop.screen_selected);
