@@ -3202,7 +3202,7 @@ const print_Fn = (Json, client_id, timestamp, sign, access_token, back) => {
       id: 12,
       name: '32',
       address: {
-        address: '甘肃省, 武威市, 凉州区',
+        address: '甘肃省 武威市 凉州区',
         detail: "荣华南路恒大绿洲东大门运萍超市",
         name: "杨店长",
         phone: "",
@@ -3228,12 +3228,12 @@ const print_Fn = (Json, client_id, timestamp, sign, access_token, back) => {
   Json.shop.forEach(e => {
     if (e.screen_selected) {
       e.screen_selected.forEach(e2 => {
-        user_str += `<LR>${e.name}(${e2.title}),X${e2.num} ${e2.money}</LR>`;
-        company_str += `<LR>${e.name}[${e.id}](${e2.title}),X${e2.num} ${e2.money}</LR>`;
+        user_str += `<LR>${e.name}(${e2.title}), X${e2.num} ${e2.money}</LR>`;
+        company_str += `<LR>${e.name}[${e.id}](${e2.title}), X${e2.num} ${e2.money}</LR>`;
       })
     } else {
-      user_str += `<LR>${e.name},X${e.num} ${e.money}</LR>`;
-      company_str += `<LR>${e.name}[${e.id}],X${e.num} ${e.money}</LR>`;
+      user_str += `<LR>${e.name}, X${e.num} ${e.money}</LR>`;
+      company_str += `<LR>${e.name}[${e.id}], X${e.num} ${e.money}</LR>`;
     }
   });
   // const content = '<MS>1,2</MS><FB>订单号：1</FB><table><tr><td>商品</td><td>数量</td><td>价格</td><td>地址</td></tr></table>'
@@ -3241,7 +3241,7 @@ const print_Fn = (Json, client_id, timestamp, sign, access_token, back) => {
         `@@2<FS2><center>***# 雪又精选***</center></FS2>` +
         `<FS2><center>---已在线支付---</center></FS2>` +
         `<FS2><center>---------------</center></FS2>` +
-        `<LR>[下单时间],${Json.time}</LR>`+
+        `<LR>[下单时间],${DFormat()}</LR>`+
         `<center><FS2>-----商品-----</FS2></center>` +
         user_str +
         `<center><FS2>--------------</FS2></center>` +
