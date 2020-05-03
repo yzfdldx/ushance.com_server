@@ -1999,7 +1999,7 @@ router.get('/get_order.json', function(req, res, next) { // 查询订单
         }
       })
     } else if (query.user_id && query.trans) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and trans = ${query.trans} and hidden is null order by edit_time desc , id`;
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and trans = ${query.trans} and hidden is null order by edit_time desc , id desc`;
       MQ_ok(select, res, (result) => {
         if (result) {
           res.send({
@@ -2017,7 +2017,7 @@ router.get('/get_order.json', function(req, res, next) { // 查询订单
         }
       })
     } else if (query.user_id) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and hidden is null order by edit_time desc , id`;
+      var select = 'select ' + '*' + ' from ' + 'my_web.erha_order' + ' where ' + `use_id = ${query.user_id} and hidden is null order by edit_time desc , id desc`;
       MQ_ok(select, res, (result) => {
         if (result) {
           res.send({
