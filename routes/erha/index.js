@@ -3248,10 +3248,10 @@ const print_Fn = (Json, client_id, timestamp, sign, access_token, back) => {
         `<LR>配送费,￥0.00</LR>` +
         `<center><FS2>-------------</FS2></center>` +
         `<FB><LR>总计：,${Json.price}</LR></FB>`+
-        `<LR>地址,${Json.self_mention.address.address}</LR>`+
-        `<LR>详细:,${Json.self_mention.address.detail}</LR>`+
-        `<LR>收货人,${Json.user.name}</LR>`+
-        `<LR>手机,${Json.user.phone}</LR>`+
+        `<LR>地址:,${Json.self_mention.address.address}</LR>`+
+        `<LR>详细:,${Json.self_mention.address.detail} ${Json.self_mention.name}</LR>`+
+        `<LR>收货人:,${Json.user.name}</LR>`+
+        `<LR>手机:,${Json.user.phone}</LR>`+
         `<center><FS2>--------------</FS2></center>` +
         // `<QR>www.ushance.com</QR>` +
         `<FS2><center>*****进货单*****</center></FS2>` +
