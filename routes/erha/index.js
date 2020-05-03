@@ -484,10 +484,10 @@ router.get('/get_shop_card.json', function(req, res, next) { // 查询购物车
     });
   }
 });
-router.get('/edit_shop_card.json', function(req, res, next) { // 编辑购物车 ???
+router.post('/edit_shop_card.json', function(req, res, next) { // 编辑购物车 ???
   try {
-    const query = req.query;
-    // const query = req.body;
+    // const query = req.query;
+    const query = req.body;
     if (checkFn(['id','user_id', 'shop_id', 'shop_num'], query, res)) {
       var select = 'select ' + '*' + ' from ' + 'my_web.erha_shop' + ' where ' + `id = ${query.shop_id}`;
       MQ_ok(select, res, (result) => {
