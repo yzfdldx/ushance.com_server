@@ -812,6 +812,11 @@ router.post('/add_order.json', function(req, res, next) { // 新增订单
                         defaultSet: true,
                       },
                       {
+                        key: 'edit_time',
+                        default: new Data().getTime(),
+                        defaultSet: true,
+                      },
+                      {
                         key: 'logistic',
                         default: '1',
                         defaultSet: true,
@@ -2681,6 +2686,7 @@ router.get('/pay.json', async function(req, res, next) { // 支付成功
         if (order && `${order.trans}` !== '2') {
           let str = `trans = '${2}'`;
           str += `, pay_price = '${query.price}'`;
+          str += `, edit_time = '${new Data().getTime()}'`;
           var select = `update my_web.erha_order set ` +
           str +
           ` where id = ${query.id}`;
@@ -2966,6 +2972,7 @@ router.get('/order_ok.json', async function(req, res, next) { // 订单结算成
     if (checkFn(['id'], query, res)) {
       let str = `trans = '${3}'`;
       str += `, logistic = '${5}'`;
+      str += `, edit_time = '${new Data().getTime()}'`;
       var select_edit = `update my_web.erha_order set ` +
       str +
       ` where id = ${query.id}`;
