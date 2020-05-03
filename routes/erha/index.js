@@ -3188,13 +3188,47 @@ const print_token_Fn = (data, back) => {
     // })
   }
 }
-const print_Fn = (value, client_id, timestamp, sign, access_token, back) => {
-  const Json = {
-    shop: '白菜[5]1份，萝卜[21]3斤',
+const print_Fn = (Json, client_id, timestamp, sign, access_token, back) => {
+  const Json2 = {
+    order: '12,32',
+    self_mention: {
+      id: 12,
+      name: '32',
+      address: {
+        address: '甘肃省, 武威市, 凉州区',
+        detail: "荣华南路恒大绿洲东大门运萍超市",
+        name: "杨店长",
+        phone: "",
+      }
+    },
+    shop: [{
+      name: '黄瓜',
+      id: 1,
+      num: 32,
+      money: '￥12.43',
+      screen_selected: [{title: '2斤/个', num: 2, money: '￥12.22'}],
+    }],
+    user: {
+      id:1,
+      name: 32,
+      phone: '323232'
+    },
     price: '￥322.21',
-    self: '地址：杭州XX店[12]',
     time: `${DFormat()}`
   }
+  user_str = '';
+  company_str = '';
+  Json.shop.forEach(e => {
+    if (e.screen_selected) {
+      e.screen_selected.forEach(e2 => {
+        user_str += `<LR>${e.name}(${e2.title}),X${e2.num} ${e2.money}</LR>`;
+        company_str += `<LR>${e.name}[${e.id}](${e2.title}),X${e2.num} ${e2.money}</LR>`;
+      })
+    } else {
+      user_str += `<LR>${e.name},X${e.num} ${e.money}</LR>`;
+      company_str += `<LR>${e.name}[${e.id}],X${e.num} ${e.money}</LR>`;
+    }
+  });
   // const content = '<MS>1,2</MS><FB>订单号：1</FB><table><tr><td>商品</td><td>数量</td><td>价格</td><td>地址</td></tr></table>'
   const content = `<MS>1,2</MS>`+
         `@@2<FS2><center>***# 雪又精选***</center></FS2>` +
@@ -3202,22 +3236,25 @@ const print_Fn = (value, client_id, timestamp, sign, access_token, back) => {
         `<FS2><center>---------------</center></FS2>` +
         `<LR>[下单时间],${Json.time}</LR>`+
         `<center><FS2>-----商品-----</FS2></center>` +
-        `<LR>白菜(斤/份),X1 ￥22.32</LR>`+
-        `<LR>萝卜(个/份),X3 ￥3.00</LR>`+
+        user_str +
         `<center><FS2>--------------</FS2></center>` +
-        `<LR>配送费,￥0.00</LR>`+
+        `<LR>配送费,￥0.00</LR>` +
         `<center><FS2>-------------</FS2></center>` +
         `<FB><LR>总计：,${Json.price}</LR></FB>`+
-        `<LR>地址,杭州XX店</LR>`+
-        `<LR>收货人,李**</LR>`+
-        `<LR>手机,185***</LR>`+
+        `<LR>地址,${Json.self_mention.address.address}</LR>`+
+        `<LR>详细:,${Json.self_mention.address.detail}</LR>`+
+        `<LR>收货人,${Json.user.name}</LR>`+
+        `<LR>手机,${Json.user.phone}</LR>`+
         `<center><FS2>--------------</FS2></center>` +
+        // `<QR>www.ushance.com</QR>` +
         `<FS2><center>*****进货单*****</center></FS2>` +
-        `<LR>订单号,[21,34]</LR>`+
-        `<LR>白菜[1](斤/份),X1</LR>`+
-        `<LR>萝卜[21](个/份),X3</LR>`+
-        `<LR>自提点[12],杭州XX店</LR>`+
-        `<LR>用户,李**|188***|[1]</LR>`+
+        `<LR>订单号,${Json.order}</LR>`+
+        company_str +
+        `<LR>自提点[${Json.self_mention.id}],${Json.self_mention.address.address}</LR>`+
+        `<LR>详细:,${Json.self_mention.address.detail}</LR>`+
+        `<LR>自提点电话,${Json.self_mention.phone}</LR>`+
+        `<LR>收货人[${Json.user.id}],${Json.user.name}</LR>`+
+        `<LR>手机,${Json.user.phone}</LR>`+
         `<LR>总计：,${Json.price}</LR>` +
         `@@2<FS2><center>****# 完****</center></FS2>`;
   let postData = JSON.stringify({
@@ -3446,10 +3483,18 @@ router.get('/print_code.json', async function(req, res, next) {
   httpsReq.write(postData);
   httpsReq.end();
 });
-router.get('/print.json', async function(req, res, next) {
-  print_token_Fn({}, (e) => {
+router.post('/print.json', async function(req, res, next) {
+  const query = req.body;
+  let Data = {};
+  try {
+    Data = JSON.parse(query.data)
+  } catch (error) {
+    //
+  }
+  // const query = req.query;
+  print_token_Fn(Data, (e) => {
     res.send(e);
-  })
+  }) 
 });
 
 module.exports = router;
