@@ -197,6 +197,7 @@ router.get('/recom_shop.json', function(req, res, next) { // 商品推荐
                     show_pre_sale_time: e.pre_sale_time ? DFormat_ch(e.pre_sale_time) : null,
                     show_count_down: e.count_down ? DFormat_ch(e.count_down) : null,
                     order_num: num,
+                    screen_selected: e && e.screen_selected ? JSON.parse(e.screen_selected) : [], 
                   })
                 })
                 res.send({
