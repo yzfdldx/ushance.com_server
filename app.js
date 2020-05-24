@@ -27,6 +27,8 @@ var wangyin_sdk = require('./' + this_dev + '/wangyin_sdk/index');
 
 /* erha_app */
 var erha = require('./' + this_dev + '/erha/index');
+/* 题目考试_app */
+var exam = require('./' + this_dev + '/exam/index');
 
 var app = express();
 
@@ -97,6 +99,8 @@ app.use('/wangyin_sdk', wangyin_sdk);
 
 /* erha */
 app.use('/erha', erha);
+/* exam */
+app.use('/exam', exam);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

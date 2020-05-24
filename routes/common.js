@@ -49,6 +49,9 @@ var DFormat = (value, type) => { // 日期Filter
 	}
 };
 
+function Rand(min,max) {
+  return Math.floor(Math.random()*(max-min))+min;
+}
 
 var DFormat_data = (value, value2) => { // 日期Filter
 	const Str = value;
@@ -246,6 +249,8 @@ const MQ_ok = (select, res, succeed) => { // 创建数据连接
           errorCode: err,
           message: '数据库错误',
         });
+      } else {
+        console.log(err)
       }
     });
     connection.end();
@@ -255,6 +260,8 @@ const MQ_ok = (select, res, succeed) => { // 创建数据连接
         result: 'error',
         message: 'MQ未知错误',
       });
+    } else {
+      console.log('MQ未知错误')
     }
   }
 }
@@ -322,6 +329,7 @@ const Json = {
   DFormat, DFormat_data, DFormat_code,
   checkFn,
   checkAddLink, checkLink, MQ_P, MQ, MQ_ok,
-  see_edit
+  see_edit,
+  Rand,
 };
 module.exports = Json;
