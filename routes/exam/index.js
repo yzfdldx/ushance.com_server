@@ -128,7 +128,7 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录
     });
   }
 });
-router.get('/get_use.json', function(req, res, next) { // 查询用户详情
+router.get('/get_use.json', function(req, res, next) { // 查询用户详情 签到
   try {
     const query = req.query;
     // const query = req.body;
@@ -287,6 +287,80 @@ router.post('/delete_user.json', function(req, res, next) { // 删除用户
     });
   }
 });
+/* 首页 */
+router.get('/get_list.json', function(req, res, next) { // 排行
+  try {
+    const query = req.query;
+    // const query = req.body;
+    if (checkFn(['num'], query, res)) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_test order by id asc';
+      MQ_ok(select, res, (result) => {
+        if (result && result[0]) {
+          const exam_test = result[0];
+          var select2 = 'select ' + 'id, test_id, test_name, user, user_name, get_mark, time_len' + ' from ' + 'my_web.exam_random' + ' where ' + `test_id = "${exam_test.id}"` + ' order by get_mark asc';
+          MQ_ok(select2, res, (result2) => {
+            if (result2) {
+              res.send({
+                result: 'succeed',
+                data: result2.filter((e, k) => k < query.num),
+              });
+            }
+          })
+        } else {
+          res.send({
+            result: 'error',
+            message: '不存在该用户',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+router.post('/user_sign.json', function(req, res, next) { // 签到
+  try {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['time', 'user'], query, res)) {
+      see_edit({ // 修改供应商
+        id: query.user,
+        res: res,
+        table: 'my_web.exam_user',
+        edit: ['sign_in'],
+        edit_fn: (edit) => {
+          let sign_in = edit.sign_in ? JSON.parse(edit.sign_in) : [];
+          if (sign_in.length === 60) {
+            sign_in.shift();
+          } else if (sign_in.length > 60) {
+            sign_in.shift();
+            sign_in.shift();
+            sign_in.shift();
+          }
+          sign_in.push(query.time);
+          sign_in = JSON.stringify(sign_in)
+          return {
+            sign_in
+          }
+        },
+        succeed: (result3) => {
+          //
+        },
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+
 /* 试题 */
 const load_lists = (e) => {
   var Arr = [
@@ -3429,7 +3503,7 @@ const config = {
   // pfx: require('fs').readFileSync('证书文件路径'),
   // pfx: fs.readFileSync('./public/ssl/weixin/apiclient_cert.p12', 'ascii'),
   pfx: fs.readFileSync( path.resolve(__dirname,"../../ssl/weixin/apiclient_cert.p12"), 'ascii'),
-  notify_url: 'https://www.ushance.com/weixing_sdk/web/yanqian.json',
+  notify_url: '',
   // spbill_create_ip: 'IP地址'
 };
 const api = new tenpay(config, true);
