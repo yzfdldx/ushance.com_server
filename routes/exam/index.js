@@ -348,7 +348,10 @@ router.post('/user_sign.json', function(req, res, next) { // 签到
           }
         },
         succeed: (result3) => {
-          //
+          res.send({
+            result: 'succeed',
+            data: result3,
+          });
         },
       })
     }
