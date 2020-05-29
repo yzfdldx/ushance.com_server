@@ -297,7 +297,7 @@ router.get('/get_list.json', function(req, res, next) { // 排行
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           const exam_test = result[0];
-          var select2 = 'select ' + 'id, test_id, test_name, user, user_name, get_mark, time_len' + ' from ' + 'my_web.exam_random' + ' where ' + `test_id = "${exam_test.id}"` + ' order by get_mark asc';
+          var select2 = 'select ' + 'id, test_id, test_name, user, user_name, user_department, get_mark, time_len' + ' from ' + 'my_web.exam_random' + ' where ' + `test_id = "${exam_test.id}"` + ' order by get_mark asc';
           MQ_ok(select2, res, (result2) => {
             if (result2) {
               res.send({
