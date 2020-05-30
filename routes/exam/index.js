@@ -861,9 +861,11 @@ router.get('/get_learn_list.json', function(req, res, next) { // 查询学习列
       if (result) {
         res.send({
           result: 'succeed',
-          data: {
-            ...result,
-          },
+          data: result.map(e => ({
+            ...e,
+            video: e.video ? JSON.parse(e.video) : {},
+            text: e.text ? JSON.parse(e.text) : [],
+          })),
         });
       } else {
         res.send({
