@@ -617,18 +617,45 @@ router.get('/get_test_list.json', function(req, res, next) { // 查询试卷列�
   try {
     const query = req.query;
     // const query = req.body;
-    var select = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' order by id asc'
+    var select = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' order by id asc LIMIT 10'
     MQ_ok(select, res, (result) => {
-      if (result && result[0]) {
-        res.send({
-          result: 'succeed',
-          data: result.map(e => ({
-            ...e,
-            creation_time: e.creation_time ? new Date(e.creation_time) : null,
-            start_time: e.start_time ? new Date(e.start_time) : null,
-            end_time: e.end_time ? new Date(e.end_time) : null,
-          })),
-        });
+      if (result) {
+        if (query.user_id) {
+          let Str = '';
+          result.forEach(e => {
+            if (!Str) {
+              Str = `test_id = "${e.id}"`;
+            } else {
+              Str += `or test_id = "${e.id}"`;
+            }
+          })
+          var select2 = 'select ' + 'id, test_id, get_mark' + ' from ' + 'my_web.exam_random' + ' where ' +
+          `user = "${query.user_id}" and ` + Str;
+          MQ_ok(select2, res, (result2) => {
+            if (result2) {
+              res.send({
+                result: 'succeed',
+                data: result.map(e => ({
+                  ...e,
+                  creation_time: e.creation_time ? new Date(e.creation_time) : null,
+                  start_time: e.start_time ? new Date(e.start_time) : null,
+                  end_time: e.end_time ? new Date(e.end_time) : null,
+                  exam_random: result2.find(e2 => e.id == e2.test_id)
+                })),
+              });
+            }
+          })
+        } else {
+          res.send({
+            result: 'succeed',
+            data: result.map(e => ({
+              ...e,
+              creation_time: e.creation_time ? new Date(e.creation_time) : null,
+              start_time: e.start_time ? new Date(e.start_time) : null,
+              end_time: e.end_time ? new Date(e.end_time) : null,
+            })),
+          });
+        }
       } else {
         res.send({
           result: 'error',
