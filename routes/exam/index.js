@@ -864,6 +864,7 @@ router.get('/get_learn_list.json', function(req, res, next) { // 查询学习列
           data: result.map(e => ({
             ...e,
             video: e.video ? JSON.parse(e.video) : {},
+            user: e.user ? JSON.parse(e.user) : [],
           })),
         });
       } else {
@@ -896,6 +897,7 @@ router.get('/get_learn.json', function(req, res, next) { // 查询学习详情
               ...result[0],
               video: result[0].video ? JSON.parse(result[0].video) : {},
               text: result[0].text ? JSON.parse(result[0].text) : [],
+              user: result[0].user ? JSON.parse(result[0].user) : [],
             },
           });
         } else {
