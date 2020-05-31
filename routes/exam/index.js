@@ -796,8 +796,10 @@ router.get('/get_random_detail.json', function(req, res, next) { // 查询随机
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           let Arr = [];
+          let ArrLIst = [];
           try {
             Arr = JSON.parse(result[0].lists);
+            ArrLIst = result[0].test_list ? JSON.parse(result[0].test_list) : [];
           } catch (error) {
             //
           }
@@ -814,10 +816,14 @@ router.get('/get_random_detail.json', function(req, res, next) { // 查询随机
             if (result2) {
               res.send({
                 result: 'succeed',
-                data: result2.map(e => ({
-                  ...e,
-                  select_option: e.select_option ? JSON.parse(e.select_option) : [],
-                })),
+                data: {
+                  ...result[0],
+                  list: result2.map((e, k) => ({
+                    ...e,
+                    select_option: e.select_option ? JSON.parse(e.select_option) : [],
+                    your_option: ArrLIst[k] ? ArrLIst[k] : ''
+                  }))
+                },
               });
             }
           })
