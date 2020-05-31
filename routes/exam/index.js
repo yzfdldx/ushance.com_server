@@ -676,56 +676,77 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
   try {
     const query = req.body;
     // const query = req.query;
-    if (checkFn(['test_id', 'user', 'len', 'mark'], query, res)) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.exam_lists';
-      MQ_ok(select, res, (result) => {
-        if (result) {
-          const list = new Array(query.len).fill('a').map(e => {
-            const a = Rand(0, result.length - 1);
-            return result.splice(a, 1)[0].id;
-          })
-          // res.send({
-          //   result: 'succeed',
-          //   data: list,
-          // });
-          var Arr = [
-            {
-              key: 'test_id',
-              default: '',
-              defaultSet: false,
-            },
-            {
-              key: 'user',
-              default: '',
-              defaultSet: false,
-            },
-            {
-              key: 'lists',
-              default: JSON.stringify(list),
-              defaultSet: true,
-            },
-            {
-              key: 'mark',
-              default: 0,
-              defaultSet: false,
-            }
-          ];
-          let str = checkAddLink(Arr, query);
-          var select = `INSERT INTO my_web.exam_random ` + str;
+    if (checkFn(['test_id', 'user'], query, res)) {
+      var select_test = `INSERT INTO my_web.exam_test ` + ' where ' + `id = "${query.test_id}"`;
+      MQ_ok(select_test, res, (result_test) => {
+        // const result_a = {insertId: 6}
+        if (result_test) {
+          var select = 'select ' + '*' + ' from ' + 'my_web.exam_lists';
           MQ_ok(select, res, (result) => {
-            // const result_a = {insertId: 6}
             if (result) {
-              res.send({
-                result: 'succeed',
-                data: result.insertId,
-              });
-            } else {
-              res.send({
-                result: 'error',
-                data: {},
-              });
+              const list = new Array(result_test[0].len).fill('a').map(e => {
+                const a = Rand(0, result.length - 1);
+                return result.splice(a, 1)[0].id;
+              })
+              // res.send({
+              //   result: 'succeed',
+              //   data: list,
+              // });
+              var Arr = [
+                {
+                  key: 'test_id',
+                  default: '',
+                  defaultSet: false,
+                },
+                {
+                  key: 'test_name',
+                  default: result_test[0].name,
+                  defaultSet: true,
+                },
+                {
+                  key: 'test_mark',
+                  default: result_test[0].qualified,
+                  defaultSet: true,
+                },
+                {
+                  key: 'user',
+                  default: '',
+                  defaultSet: false,
+                },
+                {
+                  key: 'lists',
+                  default: JSON.stringify(list),
+                  defaultSet: true,
+                },
+                {
+                  key: 'mark',
+                  default: result_test[0].mark,
+                  defaultSet: true,
+                }
+              ];
+              let str = checkAddLink(Arr, query);
+              var select = `INSERT INTO my_web.exam_random ` + str;
+              MQ_ok(select, res, (result) => {
+                // const result_a = {insertId: 6}
+                if (result) {
+                  res.send({
+                    result: 'succeed',
+                    data: result.insertId,
+                  });
+                } else {
+                  res.send({
+                    result: 'error',
+                    data: {},
+                  });
+                }
+              })
             }
           })
+        } else {
+          res.send({
+            result: 'error',
+            data: {},
+          });
         }
       })
     }
