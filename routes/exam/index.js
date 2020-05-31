@@ -676,7 +676,7 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
   try {
     const query = req.body;
     // const query = req.query;
-    if (checkFn(['test_id', 'user'], query, res)) {
+    if (checkFn(['test_id', 'user', 'user_name', 'user_department'], query, res)) {
       var select_test = `INSERT INTO my_web.exam_test` + ' where ' + `id = "${query.test_id}"`;
       MQ_ok(select_test, res, (result_test) => {
         // const result_a = {insertId: 6}
@@ -710,6 +710,16 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                 },
                 {
                   key: 'user',
+                  default: '',
+                  defaultSet: false,
+                },
+                {
+                  key: 'user_name',
+                  default: '',
+                  defaultSet: false,
+                },
+                {
+                  key: 'user_department',
                   default: '',
                   defaultSet: false,
                 },
