@@ -818,6 +818,8 @@ router.get('/get_random_detail.json', function(req, res, next) { // 查询随机
                 result: 'succeed',
                 data: {
                   ...result[0],
+                  get_mark: result[0].get_mark ? parseFloat(result[0].get_mark) : 0,
+                  test_mark: result[0].test_mark ? parseFloat(result[0].test_mark) : 0,
                   list: result2.map((e, k) => ({
                     ...e,
                     select_option: e.select_option ? JSON.parse(e.select_option) : [],
