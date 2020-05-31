@@ -924,6 +924,7 @@ router.get('/get_learn_list.json', function(req, res, next) { // 查询学习列
             ...e,
             video: e.video ? JSON.parse(e.video) : {},
             user: e.user ? JSON.parse(e.user) : [],
+            text: null
           })),
         });
       } else {
