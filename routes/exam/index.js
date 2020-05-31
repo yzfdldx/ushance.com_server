@@ -684,7 +684,7 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
           var select = 'select ' + '*' + ' from ' + 'my_web.exam_lists';
           MQ_ok(select, res, (result) => {
             if (result) {
-              const list = new Array(result_test[0].len).fill('a').map(e => {
+              const list = new Array(parseInt(result_test[0].len)).fill('a').map(e => {
                 const a = Rand(0, result.length - 1);
                 return result.splice(a, 1)[0].id;
               })
@@ -715,13 +715,13 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                 },
                 {
                   key: 'user_name',
-                  default: '',
-                  defaultSet: false,
+                  default: query.user_name,
+                  defaultSet: true,
                 },
                 {
                   key: 'user_department',
-                  default: '',
-                  defaultSet: false,
+                  default: query.user_department,
+                  defaultSet: true,
                 },
                 {
                   key: 'lists',
@@ -731,6 +731,11 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                 {
                   key: 'mark',
                   default: result_test[0].mark,
+                  defaultSet: true,
+                },
+                {
+                  key: 'start_time',
+                  default: DFormat(),
                   defaultSet: true,
                 }
               ];
