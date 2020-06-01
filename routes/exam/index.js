@@ -962,7 +962,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
   try {
     // const query = req.query;
     const query = req.body;
-    if (checkFn(['test_id'], query, res)) {
+    if (checkFn(['test_id', 'random_id'], query, res)) {
       var select_test = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' where ' + `id = "${query.test_id}"`;
       MQ_ok(select_test, res, (result_test) => {
         // const result_a = {insertId: 6}
@@ -983,7 +983,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
 
               var select3 = `update my_web.exam_random set ` +
               str +
-              ` where id = ${query.id}`;
+              ` where id = ${query.random_id}`;
               MQ_ok(select3, res, (result3) => { // 更新随机试卷
                 if (result3 && result3[0]) {
                   res.send({
