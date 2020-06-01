@@ -863,7 +863,7 @@ router.get('/get_random_detail.json', function(req, res, next) { // 查询随机
                   list: result2.map((e, k) => ({
                     ...e,
                     select_option: e.select_option ? JSON.parse(e.select_option) : [],
-                    your_option: ArrLIst[k] ? ArrLIst[k] : ''
+                    your_option: ArrLIst[k] ? `${ArrLIst[k]}` : ''
                   }))
                 },
               });
@@ -979,7 +979,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
               str += `, time_len = null`;
               str += `, test_list = null`;
               str += `, get_mark = null`;
-              str += `, test_list = '${JSON.stringify(list)}'`;
+              str += `, lists = '${JSON.stringify(list)}'`;
 
               var select3 = `update my_web.exam_random set ` +
               str +
