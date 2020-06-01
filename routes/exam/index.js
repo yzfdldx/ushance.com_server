@@ -889,8 +889,8 @@ router.post('/edit_random.json', function(req, res, next) { // 答题编辑
   try {
     // const query = req.query;
     const query = req.body;
-    if (checkFn(['random_id', 'test_list', 'end_time', 'time_len'], query, res)) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.exam_random' + ' where ' + `id = "${query.random_id}"`
+    if (checkFn(['id', 'test_list', 'end_time', 'time_len'], query, res)) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_random' + ' where ' + `id = "${query.id}"`
       MQ_ok(select, res, (result) => { // 查看随机试卷
         if (result && result[0]) {
           let Arr = [];
