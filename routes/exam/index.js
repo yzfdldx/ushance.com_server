@@ -1007,67 +1007,6 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
         }
       })
     }
-    if (checkFn(['id', 'test_list', 'start_time', 'end_time', 'time_len'], query, res)) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.exam_random' + ' where ' + `id = "${query.id}"`
-      MQ_ok(select, res, (result) => { // 查看随机试卷
-        if (result && result[0]) {
-          let Arr = [];
-          let Asn = [];
-          try {
-            Arr = JSON.parse(result[0].lists);
-            Asn = JSON.parse(query.test_list);
-          } catch (error) {
-            //
-          }
-          let Str = '';
-          Arr.forEach(e => {
-            if (!Str) {
-              Str = `id = "${e}"`;
-            } else {
-              Str += `or id = "${e}"`;
-            }
-          })
-          var select2 = 'select ' + '*' + ' from ' + 'my_web.exam_lists' + ' where ' + Str
-          MQ_ok(select2, res, (result2) => { // 查询所有随机到的题目
-            if (result2) {
-              let mark = 0;
-              result2.forEach((e, k) => {
-                if (e.solution === Asn[k]) {
-                  mark += parseFloat(result[0].mark);
-                }
-              })
-              let str = `start_time = '${query.start_time}'`;
-              str += `, end_time = '${query.end_time}'`;
-              str += `, time_len = '${query.time_len}'`;
-              str += `, test_list = '${query.test_list}'`;
-              str += `, get_mark = '${mark}'`;
-
-              var select3 = `update my_web.exam_random set ` +
-              str +
-              ` where id = ${query.id}`;
-              MQ_ok(select3, res, (result3) => { // 更新随机试卷
-                if (result3 && result3[0]) {
-                  res.send({
-                    result: 'succeed',
-                    data: result3[0],
-                  });
-                } else {
-                  res.send({
-                    result: 'succeed',
-                    data: {},
-                  });
-                }
-              })
-            }
-          })
-        } else {
-          res.send({
-            result: 'error',
-            message: '不存在该用户',
-          });
-        }
-      })
-    }
   } catch (error) {
     res.send({
       result: 'error',
