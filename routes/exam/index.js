@@ -1089,29 +1089,36 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
   try {
     // const query = req.query;
     const query = req.body;
-    if (checkFn(['id', 'address'], query, res)) {
-      let address = [];
-      try {
-        address = JSON.parse(query.address)
-      } catch (error) {
-        //
-      }
-      let str = `address = '${address}'`
-      var select = `update my_web.erha_use set ` +
-      str +
-      ` where id = ${query.id}`;
-      MQ_ok(select, res, (result) => {
-        if (result && result[0]) {
+    if (checkFn(['id', 'user_id'], query, res)) {
+      see_edit({
+        id: query.id,
+        res: res,
+        table: 'my_web.exam_learn',
+        edit: ['user'],
+        edit_fn: (edit) => {
+          let user = edit.user ? JSON.parse(edit.user) : [];
+          if (user.length === 300) {
+            user.shift();
+          } else if (sign_in.length > 300) {
+            user.shift();
+            user.shift();
+            user.shift();
+          }
+          const onoff = user.find(e => e === query.user_id);
+          if (!onoff) {
+            user.push(query.user_id);
+          }
+          user = JSON.stringify(user)
+          return {
+            user
+          }
+        },
+        succeed: (result3) => {
           res.send({
             result: 'succeed',
-            data: result[0],
+            data: result3,
           });
-        } else {
-          res.send({
-            result: 'succeed',
-            data: {},
-          });
-        }
+        },
       })
     }
   } catch (error) {
