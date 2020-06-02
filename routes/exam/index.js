@@ -297,8 +297,8 @@ router.get('/get_list.json', function(req, res, next) { // 排行
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           const exam_test = result[0];
-          var select2 = 'select ' + 'id, test_id, test_name, user, user_name, user_department, get_mark, time_len' + ' from ' + 'my_web.exam_random' +
-          ' where ' + `test_id = "${exam_test.id}" and test_list` + ' order by get_mark desc,time_len asc'; // desc asc
+          var select2 = 'select ' + 'id, test_list, test_id, test_name, user, user_name, user_department, get_mark, time_len' + ' from ' + 'my_web.exam_random' +
+          ' where ' + `test_id = "${exam_test.id}" and test_list is not null and get_mark is not null` + ' order by get_mark desc,time_len asc'; // desc asc
           MQ_ok(select2, res, (result2) => {
             if (result2) {
               res.send({
@@ -978,7 +978,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                 const a = Rand(0, result.length - 1);
                 return result.splice(a, 1)[0].id;
               })
-              let str = `start_time = '${DFormat()}'`;
+              let str = `start_time = '${new Data().getTime()}'`;
               str += `, end_time = null`;
               str += `, time_len = null`;
               str += `, test_list = null`;
