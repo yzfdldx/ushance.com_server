@@ -1099,7 +1099,7 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
           let user = edit.user ? JSON.parse(edit.user) : [];
           if (user.length === 300) {
             user.shift();
-          } else if (sign_in.length > 300) {
+          } else if (user.length > 300) {
             user.shift();
             user.shift();
             user.shift();
