@@ -735,7 +735,7 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                 },
                 {
                   key: 'start_time',
-                  default: new Data().getTime(),
+                  default: new Date().getTime(),
                   defaultSet: true,
                 }
               ];
@@ -978,7 +978,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                 const a = Rand(0, result.length - 1);
                 return result.splice(a, 1)[0].id;
               })
-              let str = `start_time = '${new Data().getTime()}'`;
+              let str = `start_time = '${new Date().getTime()}'`;
               str += `, end_time = null`;
               str += `, time_len = null`;
               str += `, test_list = null`;
