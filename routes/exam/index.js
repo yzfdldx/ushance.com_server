@@ -735,7 +735,7 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                 },
                 {
                   key: 'start_time',
-                  default: DFormat(),
+                  default: new Data().getTime(),
                   defaultSet: true,
                 }
               ];
@@ -755,6 +755,11 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
                   });
                 }
               })
+            } else {
+              res.send({
+                result: 'error',
+                data: {},
+              });
             }
           })
         } else {
