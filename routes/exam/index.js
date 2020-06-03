@@ -1104,9 +1104,12 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
             user.shift();
             user.shift();
           }
-          const onoff = user.find(e => e === query.user_id);
+          const onoff = user.find(e => e.i === query.user_id);
           if (!onoff) {
-            user.push(query.user_id);
+            user.push({
+              i: query.user_id,
+              t: new Date().getTime(),
+            });
           }
           user = JSON.stringify(user)
           return {
@@ -1119,6 +1122,54 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
             data: result3,
           });
         },
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+router.get('/get_learn.json', function(req, res, next) { // 查询学习详情
+  try {
+    const query = req.query;
+    // const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_learn' + ' where ' + `id = "${query.id}"`;
+      MQ_ok(select, res, (result) => {
+        if (result && result[0]) {
+          const user = result[0].user ? JSON.parse(result[0].user) : [];
+          let Str = '';
+          user.forEach(e => {
+            if (!Str) {
+              Str = `id = "${e.i}"`;
+            } else {
+              Str += `or id = "${e.i}"`;
+            }
+          })
+          var select2 = 'select ' + 'id, title, type, select_option' + ' from ' + 'my_web.exam_user' + ' where ' + Str
+          MQ_ok(select2, res, (result2) => {
+            const Arr = [];
+            user.forEach(e => {
+              const item = result2.find(e2 => e2.id == e.i);
+              Arr.push({
+                ...e,
+                ...item,
+              });
+            })
+            res.send({
+              result: 'succeed',
+              data: Arr,
+            });
+          })
+        } else {
+          res.send({
+            result: 'error',
+            message: '不存在该用户',
+          });
+        }
       })
     }
   } catch (error) {
