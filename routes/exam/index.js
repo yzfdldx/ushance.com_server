@@ -1149,7 +1149,7 @@ router.get('/get_learn_user.json', function(req, res, next) { // 查询学习详
               Str += `or id = "${e.i}"`;
             }
           })
-          var select2 = 'select ' + 'id, title, type, select_option' + ' from ' + 'my_web.exam_user' + ' where ' + Str
+          var select2 = 'select ' + 'id, name, user_type, department' + ' from ' + 'my_web.exam_user' + ' where ' + Str
           MQ_ok(select2, res, (result2) => {
             const Arr = [];
             user.forEach(e => {
