@@ -1132,7 +1132,7 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
     });
   }
 });
-router.get('/get_learn.json', function(req, res, next) { // 查询学习详情
+router.get('/get_learn_user.json', function(req, res, next) { // 查询学习详情
   try {
     const query = req.query;
     // const query = req.body;
