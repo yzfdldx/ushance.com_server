@@ -1157,6 +1157,7 @@ router.get('/get_learn_user.json', function(req, res, next) { // 查询学习详
               Arr.push({
                 ...e,
                 ...item,
+                time: DFormat(e.t)
               });
             })
             res.send({
