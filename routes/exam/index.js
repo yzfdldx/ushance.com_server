@@ -330,7 +330,7 @@ router.post('/user_sign.json', function(req, res, next) { // 签到
     // const query = req.query;
     const query = req.body;
     if (checkFn(['time', 'user'], query, res)) {
-      see_edit({ // 修改供应商
+      see_edit({
         id: query.user,
         res: res,
         table: 'my_web.exam_user',
@@ -908,6 +908,22 @@ router.post('/edit_random.json', function(req, res, next) { // 答题编辑
           } catch (error) {
             //
           }
+          see_edit({ // 更新考试人数
+            id: result[0].test_id,
+            // res: res,
+            table: 'my_web.exam_test',
+            edit: ['text_len'],
+            edit_fn: (edit) => {
+              let text_len = edit.text_len ? parseInt(edit.text_len) : 0;
+              text_len = text_len + 1;
+              return {
+                text_len
+              }
+            },
+            succeed: (result3) => {
+              //
+            },
+          })
           let Str = '';
           Arr.forEach(e => {
             if (!Str) {
@@ -980,11 +996,14 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                 const a = Rand(0, result.length - 1);
                 return result.splice(a, 1)[0].id;
               })
+              let text_len = result_test[0].text_len ? parseInt(result_test[0].text_len) : 1;
+              text_len = text_len - 1;
               let str = `start_time = '${new Date().getTime()}'`;
               str += `, end_time = null`;
               str += `, time_len = null`;
               str += `, test_list = null`;
               str += `, get_mark = null`;
+              str += `, text_len = '${text_len}'`;
               str += `, lists = '${JSON.stringify(list)}'`;
 
               var select3 = `update my_web.exam_random set ` +
