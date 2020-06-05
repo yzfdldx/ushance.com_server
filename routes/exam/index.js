@@ -85,7 +85,7 @@ router.post('/sign.json', async function(req, res, next) { // 登录
                   let str = `name = '${query.name}'`;
                   str += `, img = '${query.head_img}'`;
 
-                  var select3 = `update my_web.exam_random set ` +
+                  var select3 = `update my_web.exam_user set ` +
                   str +
                   ` where id = ${Item.id}`;
                   MQ_ok(select3, res, (result3) => { // 更新随机试卷
