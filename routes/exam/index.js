@@ -82,13 +82,29 @@ router.post('/sign.json', async function(req, res, next) { // 登录
               MQ_ok(select, res, (result) => {
                 if (result[0]) { // 有是登录
                   const Item = result[0];
-                  res.send({
-                    result: 'succeed',
-                    data: {
-                      ...Item,
-                      sign_in: Item.sign_in ? JSON.parse(Item.sign_in) : [],
-                    },
-                  });
+                  let str = `name = '${query.name}'`;
+                  str += `, img = '${query.head_img}'`;
+
+                  var select3 = `update my_web.exam_random set ` +
+                  str +
+                  ` where id = ${Item.id}`;
+                  MQ_ok(select3, res, (result3) => { // 更新随机试卷
+                    if (result3) {
+                      res.send({
+                        result: 'succeed',
+                        data: {
+                          ...Item,
+                          ...result3,
+                          sign_in: Item.sign_in ? JSON.parse(Item.sign_in) : [],
+                        },
+                      });
+                    } else {
+                      res.send({
+                        result: 'error',
+                        data: {},
+                      });
+                    }
+                  })
                 } else { // 是注册
                   res.send({
                     result: 'error',
