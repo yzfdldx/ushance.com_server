@@ -57,7 +57,7 @@ const DFormat_ch = (value) => { // 日期Filter
 };
 
 /* 用户 */
-router.post('/wx_sign.json', async function(req, res, next) { // 登录
+router.post('/sign.json', async function(req, res, next) { // 登录
   try {
     var WXBizDataCrypt = require('../weixing_sdk/WXBizDataCrypt');
     const query = req.body;
