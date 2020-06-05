@@ -94,7 +94,8 @@ router.post('/sign.json', async function(req, res, next) { // 登录
                         result: 'succeed',
                         data: {
                           ...Item,
-                          ...result3,
+                          name: query.name,
+                          img: query.head_img,
                           sign_in: Item.sign_in ? JSON.parse(Item.sign_in) : [],
                         },
                       });
