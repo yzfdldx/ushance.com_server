@@ -64,7 +64,7 @@ router.post('/wx_sign.json', async function(req, res, next) { // 登录
     // const query = req.query;
     if (checkFn(['code', 'iv', 'encryptedData', 'name', 'head_img'], query, res)) {
       const appId = 'wxafbea51322ac546b';
-      const secret = '0f2cd57590d9222a7209a559af628476';
+      const secret = '1c0aa6027b2191deb8d82795a138ba3a';
       const encryptedData = query.encryptedData;
       const iv = query.iv;
       const Url = encodeURI(`https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${secret}&js_code=${query.code}&grant_type=authorization_code`);
