@@ -797,12 +797,14 @@ router.post('/add_random.json', async function(req, res, next) { // 新建随机
             if (result) {
               const list = new Array(parseInt(result_test[0].len)).fill('a').map(e => {
                 const a = Rand(0, result.length - 1);
-                return result.splice(a, 1)[0].id;
+                const it = result.splice(a, 1)[0];
+                return it ? it.id : 1
               })
               // res.send({
               //   result: 'succeed',
               //   data: list,
               // });
+              // return
               var Arr = [
                 {
                   key: 'test_id',
