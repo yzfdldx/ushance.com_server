@@ -740,7 +740,7 @@ router.get('/get_test_list.json', function(req, res, next) { // 查询试卷列�
               Str += `or test_id = "${e.id}"`;
             }
           })
-          var select2 = 'select ' + 'id, test_id, get_mark' + ' from ' + 'my_web.exam_random' + ' where ' +
+          var select2 = 'select ' + 'id, test_id, get_mark, time_len' + ' from ' + 'my_web.exam_random' + ' where ' +
           `user = "${query.user_id}" and ` + Str;
           MQ_ok(select2, res, (result2) => {
             if (result2) {
@@ -1096,50 +1096,53 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
     // const query = req.query;
     const query = req.body;
     if (checkFn(['test_id', 'random_id'], query, res)) {
-      var select_test = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' where ' + `id = "${query.test_id}"`;
-      MQ_ok(select_test, res, (result_test) => {
-        // const result_a = {insertId: 6}
-        if (result_test) {
-          var select = 'select ' + '*' + ' from ' + 'my_web.exam_lists';
-          MQ_ok(select, res, (result) => {
-            if (result) {
-              const list = new Array(parseInt(result_test[0].len)).fill('a').map(e => {
-                const a = Rand(0, result.length - 1);
-                return result.splice(a, 1)[0].id;
-              })
-              let text_len = result_test[0].text_len ? parseInt(result_test[0].text_len) : 1;
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_lists';
+      MQ_ok(select, res, (result) => {
+        if (result) {
+          let l = 0;
+          see_edit({ // 更新考试人数
+            id: query.test_id,
+            res: res,
+            table: 'my_web.exam_test',
+            edit: ['text_len', 'len'],
+            edit_fn: (edit) => {
+              let text_len = edit.text_len ? parseInt(edit.text_len) : 1;
               text_len = text_len - 1;
-              let str = `start_time = '${new Date().getTime()}'`;
-              str += `, end_time = null`;
-              str += `, time_len = null`;
-              str += `, test_list = null`;
-              str += `, get_mark = null`;
-              str += `, text_len = '${text_len}'`;
-              str += `, lists = '${JSON.stringify(list)}'`;
-
-              var select3 = `update my_web.exam_random set ` +
-              str +
-              ` where id = ${query.random_id}`;
-              MQ_ok(select3, res, (result3) => { // 更新随机试卷
-                if (result3 && result3[0]) {
+              l = edit.len;
+              return {
+                text_len,
+                len: edit.len
+              }
+            },
+            succeed: (result2) => {
+              see_edit({ // 更新考试人数
+                id: query.random_id,
+                res: res,
+                table: 'my_web.exam_random',
+                edit: ['start_time', 'end_time', 'time_len', 'test_list', 'lists'],
+                edit_fn: (edit) => {
+                  const list = new Array(parseInt(l)).fill('a').map(e => {
+                    const a = Rand(0, result.length - 1);
+                    const i = result.splice(a, 1)[0];
+                    return i ? i.id : 1;
+                  })
+                  return {
+                    start_time: new Date(),
+                    end_time: null,
+                    time_len: null,
+                    test_list: null,
+                    lists: list,
+                  }
+                },
+                succeed: (result3) => {
                   res.send({
                     result: 'succeed',
-                    data: result3[0],
+                    data: result3,
                   });
-                } else {
-                  res.send({
-                    result: 'succeed',
-                    data: {},
-                  });
-                }
+                },
               })
-            }
+            },
           })
-        } else {
-          res.send({
-            result: 'error',
-            data: {},
-          });
         }
       })
     }
