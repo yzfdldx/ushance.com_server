@@ -1131,7 +1131,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                     end_time: null,
                     time_len: null,
                     test_list: null,
-                    lists: list,
+                    lists: JSON.stringify(list),
                   }
                 },
                 succeed: (result3) => {
