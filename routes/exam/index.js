@@ -371,12 +371,13 @@ router.get('/get_list.json', function(req, res, next) { // 排行
     const query = req.query;
     // const query = req.body;
     if (checkFn(['num'], query, res)) {
-      var select = 'select ' + '*' + ' from ' + 'my_web.exam_test order by id asc';
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_test order by id desc';
       MQ_ok(select, res, (result) => {
-        if (result && result[0]) {
+        const item = result.find(e => e.text_len);
+        if (item) {
           const exam_test = query.test_id ? {
             id: query.test_id
-          } : result[0];
+          } : item;
           var select2 = 'select ' + 'id, test_list, test_id, test_name, user, user_name, user_department, get_mark, time_len' + ' from ' + 'my_web.exam_random' +
           ' where ' + `test_id = "${exam_test.id}" and test_list is not null and get_mark is not null` + ' order by get_mark desc,time_len asc'; // desc asc
           MQ_ok(select2, res, (result2) => {
@@ -389,8 +390,8 @@ router.get('/get_list.json', function(req, res, next) { // 排行
           })
         } else {
           res.send({
-            result: 'error',
-            message: '不存在该用户',
+            result: 'succeed',
+            data: []
           });
         }
       })
@@ -666,7 +667,7 @@ router.post('/add_test.json', async function(req, res, next) { // 新建试卷
         },
         {
           key: 'creation_time',
-          default: Time,
+          default: new Date(),
           defaultSet: true,
         },
       ];
@@ -727,7 +728,7 @@ router.get('/get_test_list.json', function(req, res, next) { // 查询试卷列�
   try {
     const query = req.query;
     // const query = req.body;
-    var select = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' order by id asc LIMIT 10'
+    var select = 'select ' + '*' + ' from ' + 'my_web.exam_test' + ' order by id desc LIMIT 10'
     MQ_ok(select, res, (result) => {
       if (result) {
         if (query.user_id) {
