@@ -145,12 +145,43 @@ router.post('/sign.json', async function(req, res, next) { // 登录
     });
   }
 });
-router.get('/get_use.json', function(req, res, next) { // 查询用户详情 签到
+router.get('/get_use.json', function(req, res, next) { // 查询用户详情
   try {
     const query = req.query;
     // const query = req.body;
     if (checkFn(['phone'], query, res)) {
       var select = 'select ' + '*' + ' from ' + 'my_web.exam_user' + ' where ' + `phone = "${query.phone}"`
+      MQ_ok(select, res, (result) => {
+        if (result && result[0]) {
+          res.send({
+            result: 'succeed',
+            data: {
+              ...result[0],
+              sign_in: result[0].sign_in ? JSON.parse(result[0].sign_in) : [],
+            },
+          });
+        } else {
+          res.send({
+            result: 'error',
+            message: '不存在该用户',
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+router.get('/get_use_id.json', function(req, res, next) { // 查询用户详情
+  try {
+    const query = req.query;
+    // const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var select = 'select ' + '*' + ' from ' + 'my_web.exam_user' + ' where ' + `id = "${query.id}"`
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
           res.send({
