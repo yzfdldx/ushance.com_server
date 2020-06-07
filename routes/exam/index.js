@@ -1392,7 +1392,7 @@ router.post('/learn_updata', upload.single('file'), async (req, res, next) => { 
             var data = xlsx.utils.sheet_to_json(sheet); //通过工具将表对象的数据读出来并转成json);
             fs.unlink(req.file.path, function(err) {})
             data.forEach(e => {
-              let fi = null;
+              let fi = '';
               try {
                 fi = JSON.stringify(e['文件']);
               } catch (error) {
@@ -1404,7 +1404,7 @@ router.post('/learn_updata', upload.single('file'), async (req, res, next) => { 
                 video: e['类型'] === 'video' ? JSON.stringify({
                   img: e['视频图片'],
                   src: e['视频资源'],
-                }) : null,
+                }) : '',
                 text: fi,
               });
             })
