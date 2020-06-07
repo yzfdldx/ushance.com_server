@@ -1159,7 +1159,7 @@ router.get('/get_learn_list.json', function(req, res, next) { // 查询学习列
   try {
     // const query = req.query;
     // const query = req.body;
-    var select = 'select ' + '*' + ' from ' + 'my_web.exam_learn'
+    var select = 'select ' + '*' + ' from ' + 'my_web.exam_learn order by id desc'
     MQ_ok(select, res, (result) => {
       if (result) {
         res.send({
@@ -1313,6 +1313,151 @@ router.get('/get_learn_user.json', function(req, res, next) { // 查询学习详
       result: 'error',
       errorCode: error,
       message: '未知错误',
+    });
+  }
+});
+router.post('/delete_learn.json', function(req, res, next) { // 删除学习
+  try {
+    // const query = req.query;
+    const query = req.body;
+    if (checkFn(['id'], query, res)) {
+      var select = `DELETE FROM my_web.exam_learn WHERE id = ${query.id}`;
+      MQ_ok(select, res, (result) => { // 删除
+        if (result) {
+          res.send({
+            result: 'succeed',
+            data: result,
+          });
+        } else {
+          res.send({
+            result: 'error',
+            data: {},
+          });
+        }
+      })
+    }
+  } catch (error) {
+    res.send({
+      result: 'error',
+      errorCode: error,
+      message: '未知错误',
+    });
+  }
+});
+const load_learn = (e) => {
+  var Arr = [
+    {
+      key: 'name',
+      default: e.name,
+      defaultSet: true,
+    },
+    {
+      key: 'type',
+      default: e.type,
+      defaultSet: true,
+    },
+    {
+      key: 'video',
+      default: e.video,
+      defaultSet: true,
+    },
+    {
+      key: 'text',
+      default: e.text,
+      defaultSet: true,
+    },
+    {
+      key: 'time',
+      default: DFormat(),
+      defaultSet: true,
+    }
+  ]
+  let str = checkAddLink(Arr, {});
+  var select = `INSERT INTO my_web.exam_learn ` + str;
+  MQ_ok(select, null, (result) => {
+    // console.log('exam_learn ok')
+  })
+}
+router.post('/learn_updata', upload.single('file'), async (req, res, next) => { // 上传学习
+  try {
+    const query = req.body;
+    fs.exists(req.file.path, function (exists) {
+      if (exists) { // 存在
+        const back = (err, data) => {
+          const onoff = req.file.size < 1024 * 1024 * 100 ? true : false;
+          if (!err && onoff) {
+            let workbook = xlsx.readFile(req.file.path); //workbook就是xls文档对象
+            let sheetNames = workbook.SheetNames; //获取表明
+            let sheet = workbook.Sheets[sheetNames[0]]; //通过表明得到表对象
+            var data = xlsx.utils.sheet_to_json(sheet); //通过工具将表对象的数据读出来并转成json);
+            fs.unlink(req.file.path, function(err) {})
+            data.forEach(e => {
+              let fi = null;
+              try {
+                fi = JSON.stringify(e['文件']);
+              } catch (error) {
+                //
+              }
+              load_learn({
+                name: e['标题'],
+                type: e['类型'],
+                video: e['类型'] === 'video' ? JSON.stringify({
+                  img: e['视频图片'],
+                  src: e['视频资源'],
+                }) : null,
+                text: fi,
+              });
+            })
+            setTimeout(() => {
+              res.send({
+                result: 'succeed',
+                data: data,
+              });
+            }, 200)
+          } else if (!err) {
+            fs.unlink(req.file.path, function(err) {})
+            res.send({
+              result: 'error',
+              status: 'done',
+              result: 'error',
+              errorCode: 200,
+              err,
+              step: '文件过大',
+              message: '上传失败, 文件大小不超过100M',
+            });
+          } else {
+            res.send({
+              step: '读取失败',
+              result: 'error',
+              status: 'done',
+              result: 'error',
+              errorCode: 200,
+              err,
+              message: '上传失败',
+            });
+          }
+        }
+        fs.readFile(req.file.path, function(err, data) {
+          back(err, data);
+        })
+      } else {
+        res.send({
+          err,
+          step: '不存在',
+          status: 'done',
+          result: 'error',
+          message: '上传失败',
+        });
+      }
+    })
+  } catch (err) {
+    res.send({
+      status: 'done',
+      result: 'error',
+      errorCode: 'err',
+      step: 'try',
+      err,
+      message: '上传失败',
     });
   }
 });

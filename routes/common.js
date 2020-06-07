@@ -40,8 +40,8 @@ var DFormat = (value, type) => { // 日期Filter
 	  const Hours = oDate.getHours();
 	  const Minutes = oDate.getMinutes();
     const Seconds = oDate.getSeconds();
-    if (type === 'date') return `${year}-${ZeorFn(month)}-${ZeorFn(date)}`
-	  return `${year}-${ZeorFn(month)}-${ZeorFn(date)} ` +
+    if (type === 'date') return `${year}/${ZeorFn(month)}/${ZeorFn(date)}`
+	  return `${year}/${ZeorFn(month)}/${ZeorFn(date)} ` +
 	  `${ZeorFn(Hours)}:${ZeorFn(Minutes)}:${ZeorFn(Seconds)}`;
 	} catch (err) {
 	  // alert('代码出错请联系：yzflhez@126.com')
