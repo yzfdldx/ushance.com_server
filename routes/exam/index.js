@@ -1394,7 +1394,7 @@ router.post('/learn_updata', upload.single('file'), async (req, res, next) => { 
             data.forEach(e => {
               let fi = '';
               try {
-                fi = JSON.stringify(e['文件']);
+                fi = e['文件'] ? JSON.stringify(e['文件']) : '';
               } catch (error) {
                 //
               }
