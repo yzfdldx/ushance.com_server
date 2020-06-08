@@ -1195,12 +1195,18 @@ router.get('/get_learn.json', function(req, res, next) { // 查询学习详情
       var select = 'select ' + '*' + ' from ' + 'my_web.exam_learn' + ' where ' + `id = "${query.id}"`;
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
+          const text = [];
+          try {
+            text = result[0].text ? JSON.parse(result[0].text) : [];
+          } catch (error) {
+            
+          }
           res.send({
             result: 'succeed',
             data: {
               ...result[0],
               video: result[0].video ? JSON.parse(result[0].video) : {},
-              text: result[0].text ? JSON.parse(result[0].text) : [],
+              text: text,
               user: result[0].user ? JSON.parse(result[0].user) : [],
             },
           });
