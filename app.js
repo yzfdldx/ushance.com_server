@@ -4,7 +4,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var url = require('url');
 
 // 开发环境或者部署 -- 在root -> web-server -> ushance.com_server 里面
 var dev = 'routes';
@@ -63,29 +62,10 @@ app.all('*', function(req, res, next) {
 //     if(req.method=="OPTIONS") res.send(200);/*让options请求快速返回*/
 //     else  next();
 // });
-
-let getClientIp = function (req) {
-  return req.headers['x-forwarded-for'] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      req.connection.socket.remoteAddress || '';
-};
 var hostType = 'www';
 app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
-    // console.log("headers = " + JSON.stringify(req.headers));// 包含了各种header，包括x-forwarded-for(如果被代理过的话)
-    // console.log("x-forwarded-for = " + req.header('x-forwarded-for'));// 各阶段ip的CSV, 最左侧的是原始ip
-    // console.log("ips = " + JSON.stringify(req.ips));// 相当于(req.header('x-forwarded-for') || '').split(',')
-    // console.log("remoteAddress = " + req.connection.remoteAddress);// 未发生代理时，请求的ip
-    // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
-    // console.log('your-host', req.connection, req.parames)
-    
-    // console.log('ip', getClientIp(req));
-    let ip = getClientIp(req).match(/\d+.\d+.\d+.\d+/);
-    const u = url.parse(req.url, true)
-    console.log('ip', ip);
-    console.log('url', u);
     hostType = host ? host : 'www';
     if (hostType === 'www') {
       index(req, res, next)
