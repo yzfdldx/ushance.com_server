@@ -63,15 +63,22 @@ app.all('*', function(req, res, next) {
 //     if(req.method=="OPTIONS") res.send(200);/*让options请求快速返回*/
 //     else  next();
 // });
+let getClientIp = function (req) {
+  return req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress || '';
+};
 const {
   DFormat,
   checkAddLink, MQ_ok,
 } = require('./routes/common.js');
 var hostType = 'www';
 app.use((req, res, next)=>{
-  console.log('hostType')
   try {
     // 日志
+    var ip = getClientIp(req); // getClientIp(req).match(/\d+.\d+.\d+.\d+/);
+    var u = url.parse(req.url, true)
     var Arr = [
       {
         key: 'ip',
