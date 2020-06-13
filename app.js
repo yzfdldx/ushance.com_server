@@ -48,7 +48,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // app.set(header('Access-Control-Allow-Origin:*'));
 app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Origin", "*");
     res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
     res.header("Access-Control-Allow-Headers", "*");
     // res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -81,9 +81,10 @@ app.use((req, res, next)=>{
     // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
     // console.log('your-host', req.connection, req.parames)
     
-    console.log('ip', getClientIp(req));
+    // console.log('ip', getClientIp(req));
     let ip = getClientIp(req).match(/\d+.\d+.\d+.\d+/);
     const u = url.parse(req.url, true)
+    console.log('ip', ip);
     console.log('url', u);
     hostType = host ? host : 'www';
     if (hostType === 'www') {
