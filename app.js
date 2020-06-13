@@ -103,7 +103,7 @@ app.use((req, res, next)=>{
     // 页面
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
-    console.log(hostType)
+    console.log('hostType2', hostType)
     if (hostType === 'www') {
       index(req, res, next)
     } else if (hostType === 'data_center') {
@@ -112,6 +112,7 @@ app.use((req, res, next)=>{
       next();
     }
   } catch (error) {
+    console.log('hostTypeErr', error)
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
