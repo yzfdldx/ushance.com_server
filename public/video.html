@@ -29,7 +29,7 @@
     </style>
   </head>
   <body>
-    <div>url=<span id="test"></span></div>
+    <!-- <div>url=<span id="test"></span></div> -->
     <video id="video" controls poster="" style="display: none;">
       <source id="url" src="" type="video/mp4">
       请浏览器打开网址：
@@ -45,8 +45,8 @@
     var videoUrl = document.getElementById('url');
     var videoA = document.getElementById('videoA');
     var videoNone = document.getElementById('videoNone');
-    var test = document.getElementById('test');
-    test.innerHTML = href;
+    // var test = document.getElementById('test');
+    // test.innerHTML = href;
     if (href) {
       videoUrl.src = href;
       videoA.innerHTML = href;
