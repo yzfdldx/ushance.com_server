@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var url = require('url');
 
 // 开发环境或者部署 -- 在root -> web-server -> ushance.com_server 里面
 var dev = 'routes';
@@ -80,9 +81,10 @@ app.use((req, res, next)=>{
     // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
     // console.log('your-host', req.connection, req.parames)
     
-    console.log('req', getClientIp(req));
+    console.log('ip', getClientIp(req));
     let ip = getClientIp(req).match(/\d+.\d+.\d+.\d+/);
-    console.log('ip', ip);
+    const u = url.parse(req.url, true)
+    console.log('url', u);
     hostType = host ? host : 'www';
     if (hostType === 'www') {
       index(req, res, next)
