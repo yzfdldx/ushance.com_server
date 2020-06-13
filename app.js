@@ -66,7 +66,7 @@ var hostType = 'www';
 app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
-    console.log('your-host', req.hos, host)
+    console.log('your-host', req, req.hos, host)
     hostType = host ? host : 'www';
     if (hostType === 'www') {
       index(req, res, next)
