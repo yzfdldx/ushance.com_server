@@ -69,6 +69,7 @@ const {
 } = require('./routes/common.js');
 var hostType = 'www';
 app.use((req, res, next)=>{
+  console.log('hostType')
   try {
     // 日志
     var Arr = [
@@ -80,7 +81,7 @@ app.use((req, res, next)=>{
       {
         key: 'host',
         // default: req.host,
-        default: req.headers.origin ? req.headers.origin : req.host,
+        default: req.headers && req.headers.origin ? req.headers.origin : req.host,
         defaultSet: true,
       },
       {
