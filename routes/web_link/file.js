@@ -281,7 +281,8 @@ router.post('/large_updata', upload.single('file'), async (req, res, next) => { 
               var select2 = `update my_web.file set ` +
               `type = '${req.file.mimetype}', ` +
               `size = '${req.file.size}', ` +
-              `url = 'https://www.ushance.com/web/file/get_file?id=${insertId}&path=/upload/${req.file.filename}', ` +
+              // `url = 'https://www.ushance.com/web/file/get_file?id=${insertId}&path=/upload/${req.file.filename}', ` +
+              `url = 'https://www.ushance.com/upload/${req.file.filename}', ` +
               `down_url = 'https://www.ushance.com/web/file/down_file?id=${insertId}&path=./public/upload/${req.file.filename}', ` +
               `show_type = '${show_typeFn(req.file.mimetype)}', ` +
               `create_id = '${query.create_id ? query.create_id : 1}', ` +
@@ -293,7 +294,8 @@ router.post('/large_updata', upload.single('file'), async (req, res, next) => { 
                 if (!err) {
                   res.send({
                     name: req.file.originalname,
-                    url: `https://www.ushance.com/web/file/get_file?id=${insertId}&path=/upload/${req.file.filename}`,
+                    // url: `https://www.ushance.com/web/file/get_file?id=${insertId}&path=/upload/${req.file.filename}`,
+                    url: `https://www.ushance.com/upload/${req.file.filename}`,
                     thumbUrl: `https://www.ushance.com/web/file/down_file?id=${insertId}&path=./public/upload/${req.file.filename}`,
                     size: `${req.file.size}`,
                     status: 'done',
