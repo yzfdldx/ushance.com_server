@@ -8,17 +8,44 @@
     <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.3.0/video-js.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.3.0/video.min.js"></script> -->
     <style>
-        body{
-          /* width: 100vw; */
-          margin: 0;
-        }
+      body{
+        width: 100vw;
+        margin: 0;
+        word-break: break-all;
+      }
+      #video{
+        width: 100vw;
+        /* height: 50vw; */
+        max-height: 100vw;
+      }
+      #videoNone{
+        text-align: center;
+        line-height: 50vw;
+        font-size: 30px;
+      }
     </style>
   </head>
   <body>
+    <video id="video" controls poster="" style="display: none;">
+      <source id="url" src="" type="video/mp4">
       请浏览器打开网址：
-      <a href="#">https://www.ushance.com/web/file/get_file?id=902&path=/upload/1589720024336.mp4</a>
+      <a id="videoA"></a>
+    </video>
+    <div id="videoNone">无视频播放</div>
   </body>
   <script>
-      
+    var href = window.location.search.split('href=')[1];
+    // href = 'https://www.ushance.com/web/file/get_file?id=902&path=/upload/1589720024336.mp4';
+    // href = ''
+    var video = document.getElementById('video');
+    var videoUrl = document.getElementById('url');
+    var videoA = document.getElementById('videoA');
+    var videoNone = document.getElementById('videoNone');
+    if (href) {
+      videoUrl.src = href;
+      videoA.innerHTML = href;
+      video.style.display = 'block';
+      videoNone.style.display = 'none';
+    }
   </script>
 </html>
