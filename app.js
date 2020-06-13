@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var url = require('url');
 
 // 开发环境或者部署 -- 在root -> web-server -> ushance.com_server 里面
 var dev = 'routes';
@@ -62,9 +63,50 @@ app.all('*', function(req, res, next) {
 //     if(req.method=="OPTIONS") res.send(200);/*让options请求快速返回*/
 //     else  next();
 // });
+let getClientIp = function (req) {
+  return req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress || '';
+};
+var {
+  DFormat,
+  checkAddLink, MQ_ok,
+} = require('./routes/common.js');
+var hostType = 'www';
 var hostType = 'www';
 app.use((req, res, next)=>{
   try {
+    // 日志
+    var Arr = [
+      {
+        key: 'ip',
+        default: ip,
+        defaultSet: true,
+      },
+      {
+        key: 'host',
+        // default: req.host,
+        default: req.headers.origin,
+        defaultSet: true,
+      },
+      {
+        key: 'url',
+        default: u ? JSON.stringify(u) : '',
+        defaultSet: true,
+      },
+      {
+        key: 'time',
+        default: DFormat(),
+        defaultSet: true,
+      }
+    ];
+    var str = checkAddLink(Arr, {});
+    var select = `INSERT INTO my_web.web_host ` + str;
+    MQ_ok(select, null, (result) => {
+      //
+    })
+    // page
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
     if (hostType === 'www') {
