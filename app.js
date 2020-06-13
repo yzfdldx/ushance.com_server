@@ -54,6 +54,7 @@ app.all('*', function(req, res, next) {
     // res.header("Access-Control-Allow-Origin", "https://data_center.ushance.com");
     if( req.headers.origin == 'https://data_center.ushance.com' || req.headers.origin == 'https://www.ushance.com' ){
       // res.header(“Access-Control-Allow-Origin”, req.headers.origin);
+      console.log('origin')
       res.header("Access-Control-Allow-Origin", "*");
     }
     res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
