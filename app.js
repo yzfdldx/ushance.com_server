@@ -70,15 +70,47 @@ let getClientIp = function (req) {
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress || '';
 };
+const {
+  DFormat,
+  checkAddLink, MQ, MQ_ok,
+} = require('./routes/common.js');
 var hostType = 'www';
 app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
-    let ip = getClientIp(req).match(/\d+.\d+.\d+.\d+/);
-    const u = url.parse(req.url, true)
-    console.log('ip', ip);
-    console.log('url', u);
-    
+    var ip = getClientIp(req); // getClientIp(req).match(/\d+.\d+.\d+.\d+/);
+    var u = url.parse(req.url, true)
+    // console.log('ip', ip, req.host);
+    // console.log('url', u);
+    // 日志
+    var Arr = [
+      {
+        key: 'ip',
+        default: ip,
+        defaultSet: true,
+      },
+      {
+        key: 'host',
+        default: req.host,
+        defaultSet: true,
+      },
+      {
+        key: 'url',
+        default: u ? JSON.stringify(u) : '',
+        defaultSet: true,
+      },
+      {
+        key: 'time',
+        default: DFormat(),
+        defaultSet: true,
+      }
+    ];
+    let str = checkAddLink(Arr, {});
+    var select = `INSERT INTO my_web.web_host ` + str;
+    MQ_ok(select, null, (result) => {
+      //
+    })
+    // 页面
     hostType = host ? host : 'www';
     if (hostType === 'www') {
       index(req, res, next)
