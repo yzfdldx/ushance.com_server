@@ -63,12 +63,46 @@ app.all('*', function(req, res, next) {
 //     if(req.method=="OPTIONS") res.send(200);/*让options请求快速返回*/
 //     else  next();
 // });
+const {
+  DFormat,
+  checkAddLink, MQ_ok,
+} = require('./routes/common.js');
 var hostType = 'www';
 app.use((req, res, next)=>{
   try {
-    // page
+    // 日志
+    var Arr = [
+      {
+        key: 'ip',
+        default: ip,
+        defaultSet: true,
+      },
+      {
+        key: 'host',
+        // default: req.host,
+        default: req.headers.origin ? req.headers.origin : req.host,
+        defaultSet: true,
+      },
+      {
+        key: 'url',
+        default: u ? JSON.stringify(u) : '',
+        defaultSet: true,
+      },
+      {
+        key: 'time',
+        default: DFormat(),
+        defaultSet: true,
+      }
+    ];
+    let str = checkAddLink(Arr, {});
+    var select = `INSERT INTO my_web.web_host ` + str;
+    MQ_ok(select, null, (result) => {
+      //
+    })
+    // 页面
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
+    console.log(hostType)
     if (hostType === 'www') {
       index(req, res, next)
     } else if (hostType === 'data_center') {
