@@ -50,7 +50,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.all('*', function(req, res, next) {
     // res.header("Access-Control-Allow-Origin", "*");
     res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
-    res.header("Access-Control-Allow-Headers", "*");
+    // res.header("Access-Control-Allow-Headers", "*");
     // res.header("Access-Control-Allow-Headers", "X-Requested-With");
     // res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
@@ -74,18 +74,11 @@ var hostType = 'www';
 app.use((req, res, next)=>{
   try {
     var host = req.host.split('.')[0];
-    // console.log("headers = " + JSON.stringify(req.headers));// 包含了各种header，包括x-forwarded-for(如果被代理过的话)
-    // console.log("x-forwarded-for = " + req.header('x-forwarded-for'));// 各阶段ip的CSV, 最左侧的是原始ip
-    // console.log("ips = " + JSON.stringify(req.ips));// 相当于(req.header('x-forwarded-for') || '').split(',')
-    // console.log("remoteAddress = " + req.connection.remoteAddress);// 未发生代理时，请求的ip
-    // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
-    // console.log('your-host', req.connection, req.parames)
-    
-    // console.log('ip', getClientIp(req));
     let ip = getClientIp(req).match(/\d+.\d+.\d+.\d+/);
     const u = url.parse(req.url, true)
     console.log('ip', ip);
     console.log('url', u);
+    
     hostType = host ? host : 'www';
     if (hostType === 'www') {
       index(req, res, next)
