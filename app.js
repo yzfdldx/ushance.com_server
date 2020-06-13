@@ -48,7 +48,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // app.set(header('Access-Control-Allow-Origin:*'));
 app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "*ushance.com");
     res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
     res.header("Access-Control-Allow-Headers", "*");
     // res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -110,7 +111,6 @@ app.use((req, res, next)=>{
     // 页面
     var host = req.host.split('.')[0];
     hostType = host ? host : 'www';
-    console.log('hostType2', hostType)
     if (hostType === 'www') {
       index(req, res, next)
     } else if (hostType === 'data_center') {
