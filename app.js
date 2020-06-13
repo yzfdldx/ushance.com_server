@@ -88,7 +88,7 @@ app.use((req, res, next)=>{
       {
         key: 'host',
         // default: req.host,
-        default: req.headers.origin ? req.headers.origin : req.host,
+        default: req.headers.origin,
         defaultSet: true,
       },
       {
