@@ -1195,18 +1195,11 @@ router.get('/get_learn.json', function(req, res, next) { // 查询学习详情
       var select = 'select ' + '*' + ' from ' + 'my_web.exam_learn' + ' where ' + `id = "${query.id}"`;
       MQ_ok(select, res, (result) => {
         if (result && result[0]) {
-          const text = [];
-          try {
-            text = result[0].text ? JSON.parse(result[0].text) : [];
-          } catch (error) {
-            
-          }
           res.send({
             result: 'succeed',
             data: {
               ...result[0],
               video: result[0].video ? JSON.parse(result[0].video) : {},
-              text: text,
               user: result[0].user ? JSON.parse(result[0].user) : [],
             },
           });
@@ -1273,7 +1266,7 @@ router.post('/edit_learn.json', function(req, res, next) { // 编辑学习
     });
   }
 });
-router.get('/get_learn_user.json', function(req, res, next) { // 查询学习详情
+router.get('/get_learn_user.json', function(req, res, next) { // 查询学习用户
   try {
     const query = req.query;
     // const query = req.body;
@@ -1398,12 +1391,6 @@ router.post('/learn_updata', upload.single('file'), async (req, res, next) => { 
             var data = xlsx.utils.sheet_to_json(sheet); //通过工具将表对象的数据读出来并转成json);
             fs.unlink(req.file.path, function(err) {})
             data.forEach(e => {
-              let fi = '';
-              try {
-                fi = e['文件'] ? JSON.stringify(e['文件']) : '';
-              } catch (error) {
-                //
-              }
               load_learn({
                 name: e['标题'],
                 type: e['类型'],
@@ -1411,7 +1398,7 @@ router.post('/learn_updata', upload.single('file'), async (req, res, next) => { 
                   img: e['视频图片'],
                   src: e['视频资源'],
                 }) : '',
-                text: fi,
+                text: fi = e['文件'] ? fi = e['文件'] : '',
               });
             })
             setTimeout(() => {
