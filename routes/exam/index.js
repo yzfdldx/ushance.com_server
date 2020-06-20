@@ -1117,7 +1117,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                 id: query.random_id,
                 res: res,
                 table: 'my_web.exam_random',
-                edit: ['start_time', 'end_time', 'time_len', 'test_list', 'lists'],
+                edit: ['start_time', 'end_time', 'get_mark', 'time_len', 'test_list', 'lists'],
                 edit_fn: (edit) => {
                   const list = new Array(parseInt(l)).fill('a').map(e => {
                     const a = Rand(0, result.length - 1);
@@ -1128,6 +1128,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                     start_time: new Date(),
                     end_time: null,
                     time_len: 0,
+                    get_mark: 0,
                     test_list: JSON.stringify([]),
                     lists: JSON.stringify(list),
                   }
