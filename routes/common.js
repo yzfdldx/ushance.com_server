@@ -150,9 +150,9 @@ str +
   var str = '';
   if (query && e) {
     e.forEach(i => {
-    if (query[i]) {
-      str += str ? `, ${i} = '${query[i]}'` : `${i} = '${query[i]}'`
-    }
+      // if (query[i]) {
+        str += str ? `, ${i} = '${query[i]}'` : `${i} = '${query[i]}'`
+      // }
     });
   }
   return str;
