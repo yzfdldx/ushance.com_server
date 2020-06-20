@@ -1104,14 +1104,12 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
             id: query.test_id,
             res: res,
             table: 'my_web.exam_test',
-            edit: ['text_len', 'len'],
+            edit: ['text_len'],
             edit_fn: (edit) => {
               let text_len = edit.text_len ? parseInt(edit.text_len) : 1;
               text_len = text_len - 1;
-              l = edit.len;
               return {
                 text_len,
-                len: edit.len
               }
             },
             succeed: (result2) => {
@@ -1128,7 +1126,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                   })
                   return {
                     start_time: new Date(),
-                    end_time: '',
+                    end_time: null,
                     time_len: 0,
                     test_list: JSON.stringify([]),
                     lists: JSON.stringify(list),
