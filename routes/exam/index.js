@@ -384,7 +384,7 @@ router.get('/get_list.json', function(req, res, next) { // 排行
             if (result2) {
               res.send({
                 result: 'succeed',
-                data: result2.filter((e, k) => k < query.num),
+                data: result2.filter(e => e.time_len).filter((e, k) => k < query.num),
               });
             }
           })
