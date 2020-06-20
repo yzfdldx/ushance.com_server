@@ -1128,7 +1128,7 @@ router.post('/re_random.json', function(req, res, next) { // 重新答题
                   })
                   return {
                     start_time: new Date(),
-                    end_time: null,
+                    end_time: '',
                     time_len: 0,
                     get_mark: 0,
                     test_list: JSON.stringify([]),
