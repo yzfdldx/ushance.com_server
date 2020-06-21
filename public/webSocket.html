@@ -47,7 +47,9 @@
 <script type="text/javascript">
   window.webSocket = {};
   //连接websocket后端服务器
-  window.webSocket.socket = io.connect('ws://www.ushance.com:448/');
+  // io('https://www.ushance.com/');
+  // window.webSocket.socket = io.connect('ws://39.100.225.94:448/');
+  window.webSocket.socket = io.connect('https://www.ushance.com');
   debugger
   console.log(2323232)
   //告诉服务器端有用户登录
