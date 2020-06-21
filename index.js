@@ -49,7 +49,8 @@ var options = {
 var server = https.createServer(options, app);
 
 // 实时推送
-var io = require('socket.io')(server);
+// var io = require('socket.io')(server);
+var io = require('socket.io')(server,{pingTimeout: 30000});
 //在线用户
 var onlineUsers = {};
 //当前在线人数
@@ -101,6 +102,8 @@ io.on('connection', function(socket){
     });
    
 });
+
+io.attach(server);
 
 /**
  * Listen on provided port, on all network interfaces.
